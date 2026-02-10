@@ -20,7 +20,8 @@ const userSchema = new mongoose.Schema(
             require : true,
         },
         location : {
-            type : String
+            type : String,
+            default : null,
         },
         role : {
             type : String,
@@ -35,4 +36,5 @@ const userSchema = new mongoose.Schema(
     {timestamps : true}
 )
 
-module.exports = mongoose.model("User",userSchema);
+const Users = mongoose.model("User",userSchema);
+export default Users
