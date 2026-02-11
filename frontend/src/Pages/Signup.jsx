@@ -33,6 +33,7 @@ function Signup() {
               name="name"
               value={form.name}
               onChange={handleChange}
+              placeholder="Enter your full name"
               required
             />
           </div>
@@ -44,6 +45,7 @@ function Signup() {
               name="email"
               value={form.email}
               onChange={handleChange}
+              placeholder="Enter your email"
               required
             />
           </div>
@@ -55,6 +57,7 @@ function Signup() {
               name="password"
               value={form.password}
               onChange={handleChange}
+              placeholder="Create a password"
               required
             />
           </div>

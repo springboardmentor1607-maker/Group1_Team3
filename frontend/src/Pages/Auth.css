@@ -22,6 +22,8 @@
 .auth-card h2 {
   text-align: center;
   margin-bottom: 20px;
+  font-size: 26px;
+  font-weight: 600;
 }
 
 /* Form */
@@ -30,8 +32,8 @@
 }
 
 .form-group label {
-  font-size: 12px;
-  font-weight: 300;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .form-group input,
@@ -48,15 +50,17 @@
   width: 100%;
   padding: 10px;
   margin-top: 10px;
-  background-color: #2e7d32;
+  background-color: #2563eb;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .auth-btn:hover {
-  background-color: #1b5e20;
+  background-color: #1e40af;
 }
 
 .auth-link {
