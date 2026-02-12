@@ -1,15 +1,36 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Auth.css";
+import API from "../api/axios";
 
 function Login() {
+
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", { email, password });
-    alert("Login successful (demo)");
+    // console.log("Login Data:", { email, password });
+    // alert("Login successful (demo)");
+
+    try {
+      const response = await API.post("/user/login",{
+        email,
+        password,
+      })
+
+      localStorage.setItem("token",response.data.token);
+      alert("Login Successfull");
+      navigate("/dashboard");
+      
+      
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed")
+      
+    }
+
+
   };
 
   return (
