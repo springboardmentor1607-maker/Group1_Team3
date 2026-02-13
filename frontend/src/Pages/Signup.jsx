@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Auth.css";
+import API from "../api/axios";
 
 function Signup() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     email: "",
+    mobile: "",
     password: "",
     role: "user",
   });
@@ -14,10 +17,19 @@ function Signup() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Signup Data:", form);
-    alert("Signup successful (demo)");
+    // console.log("Signup Data:", form);
+    // alert("Signup successful (demo)");
+    try {
+      const response = await API.post("/user/signup",form)
+      alert(response.data.message);
+      navigate("/login");
+      
+    } catch (error) {
+      alert(error.response?.data?.message || "Signup Failed")
+      
+    }
   };
 
   return (
@@ -49,7 +61,18 @@ function Signup() {
               required
             />
           </div>
-
+          <div className="form-group">
+            <label>Mobile Number</label>
+            <input
+            type="tel"
+             name="mobile"
+              value={form.mobile}
+               onChange={handleChange}
+               placeholder="Enter your 10-digit mobile number"
+               pattern="[0-9]{10}"
+               required
+            />
+          </div>
           <div className="form-group">
             <label>Password</label>
             <input
@@ -71,7 +94,7 @@ function Signup() {
             >
               <option value="user">User</option>
               <option value="volunteer">Volunteer</option>
-              <option value="authority">Authority</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
 

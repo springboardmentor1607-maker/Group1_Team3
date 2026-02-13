@@ -1,15 +1,30 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Auth.css";
+import API from "../api/axios";
 
 function Login() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", { email, password });
-    alert("Login successful (demo)");
+
+    try {
+      const response = await API.post("/user/login", {
+        email,
+        password,
+      });
+
+      localStorage.setItem("token", response.data.token);
+      alert("Login Successful");
+      navigate("/dashboard");
+
+    } catch (error) {
+      alert(error.response?.data?.message || "Login Failed");
+    }
   };
 
   return (
@@ -38,6 +53,13 @@ function Login() {
               placeholder="Enter your password"
               required
             />
+          </div>
+
+          {/* Forgot Password Link */}
+          <div style={{ textAlign: "right", marginBottom: "10px" }}>
+            <Link to="/forgot-password" style={{ fontSize: "14px" }}>
+              Forgot Password?
+            </Link>
           </div>
 
           <button className="auth-btn">Login</button>
