@@ -8,6 +8,7 @@ function Signup() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    mobile: "",
     password: "",
     role: "user",
   });
@@ -60,7 +61,18 @@ function Signup() {
               required
             />
           </div>
-
+          <div className="form-group">
+            <label>Mobile Number</label>
+            <input
+            type="tel"
+             name="mobile"
+              value={form.mobile}
+               onChange={handleChange}
+               placeholder="Enter your 10-digit mobile number"
+               pattern="[0-9]{10}"
+               required
+            />
+          </div>
           <div className="form-group">
             <label>Password</label>
             <input

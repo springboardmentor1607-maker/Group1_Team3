@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Signup from "./Pages/Signup";
 import Login from "./Pages/Login";
+import ForgotPassword from "./Pages/ForgotPassword";
 import ProtectedRoute from "./component/ProtectedRoute.js";
 import Dashboard from "./Pages/Dashboard";
 
@@ -13,6 +14,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         
         <Route path="/dashboard" element = {
           <ProtectedRoute>
