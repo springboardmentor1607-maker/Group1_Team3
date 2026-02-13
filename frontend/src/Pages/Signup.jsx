@@ -22,7 +22,7 @@ function Signup() {
     // console.log("Signup Data:", form);
     // alert("Signup successful (demo)");
     try {
-      const response = await API.post("/user/signup",form)
+      const response = await API.post("/auth/signup",form)
       alert(response.data.message);
       navigate("/login");
       

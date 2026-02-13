@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema(
             unique : true,
             lowercase : true,
         },
+        mobile : {
+            type : String,
+            match : [/^[0-9]{10}$/, "Mobile Number must be exactly 10 digits"],
+        },
 
         password : {
             type : String,

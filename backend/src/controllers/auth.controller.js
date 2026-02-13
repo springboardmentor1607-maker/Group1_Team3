@@ -7,7 +7,7 @@ export const signup = async (req,res)=>{
 
 try {
     
-    const { name,email,password } = req.body;
+    const { name,email,mobile,password,role } = req.body;
 
     const existingUser = await Users.findOne({email});
 
@@ -18,7 +18,9 @@ try {
     const user = await Users.create({
         name,
         email,
+        mobile,
         password,
+        role
     })
 
     res.status(201).json({
