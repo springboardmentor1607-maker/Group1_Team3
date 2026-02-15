@@ -5,6 +5,7 @@ import Login from "./Pages/Login";
 import ForgotPassword from "./Pages/ForgotPassword";
 import ProtectedRoute from "./component/ProtectedRoute.js";
 import Dashboard from "./Pages/Dashboard";
+import Profile from "./Pages/profile";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/profile" element={<Profile />} />
         
         <Route path="/dashboard" element = {
           <ProtectedRoute>
