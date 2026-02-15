@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -19,8 +21,10 @@
                 <div class="logo-text">CleanStreet</div>
             </div>
 
-            <div class="section-title" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-muted); padding-left: 1rem; margin-bottom: 0.5rem; border: none;">Admin Panel</div>
-            
+            <div class="section-title"
+                style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-muted); padding-left: 1rem; margin-bottom: 0.5rem; border: none;">
+                Admin Panel</div>
+
             <nav class="nav-links">
                 <a href="#" class="nav-item active">
                     <i class="fa-solid fa-layer-group nav-icon"></i>
@@ -42,12 +46,15 @@
 
             <div class="sidebar-footer">
                 <div class="user-mini-profile">
-                    <div class="avatar" style="background-color: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">AD</div>
+                    <div class="avatar"
+                        style="background-color: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        AD</div>
                     <div class="user-info">
                         <h4>Admin User</h4>
                         <p>admin@cleanstreet.gov</p>
                     </div>
-                    <i class="fa-solid fa-chevron-right" style="margin-left: auto; color: var(--color-text-muted); font-size: 0.8rem;"></i>
+                    <i class="fa-solid fa-chevron-right"
+                        style="margin-left: auto; color: var(--color-text-muted); font-size: 0.8rem;"></i>
                 </div>
             </div>
         </aside>
@@ -62,45 +69,51 @@
                     <button class="action-btn btn-text">Dashboard</button>
                     <button class="action-btn btn-text">Report Issue</button>
                     <button class="action-btn btn-text">View Complaints</button>
-                    <button class="action-btn btn-primary" style="background-color: white; color: var(--color-primary); border: 1px solid var(--color-border);">Login</button>
+                    <button class="action-btn btn-primary"
+                        style="background-color: white; color: var(--color-primary); border: 1px solid var(--color-border);">Login</button>
                     <button class="action-btn btn-primary">Register</button>
                 </div>
             </header>
 
             <div class="dashboard-container">
                 <!-- System Overview -->
-                <section class="section-card" style="background: transparent; box-shadow: none; border: none; padding: 0;">
+                <section class="section-card"
+                    style="background: transparent; box-shadow: none; border: none; padding: 0;">
                     <div class="section-header">
-                        <h2 class="section-title" style="border-left: none; padding: 0; font-size: 1.5rem;">System Overview</h2>
+                        <h2 class="section-title" style="border-left: none; padding: 0; font-size: 1.5rem;">System
+                            Overview</h2>
                     </div>
-                    
+
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-icon" style="background-color: rgba(26, 35, 126, 0.1);">
                                 <i class="fa-solid fa-list"></i>
                             </div>
-                            <div class="stat-value">2</div>
+                            <div class="stat-value">4</div>
                             <div class="stat-label">Total Complaints</div>
                         </div>
 
                         <div class="stat-card">
-                            <div class="stat-icon" style="background-color: rgba(245, 127, 23, 0.1); color: var(--color-warning);">
+                            <div class="stat-icon"
+                                style="background-color: rgba(245, 127, 23, 0.1); color: var(--color-warning);">
                                 <i class="fa-solid fa-user-clock"></i>
                             </div>
-                            <div class="stat-value">2</div>
+                            <div class="stat-value">4</div>
                             <div class="stat-label">Pending Review</div>
                         </div>
 
                         <div class="stat-card">
-                            <div class="stat-icon" style="background-color: rgba(46, 125, 50, 0.1); color: var(--color-success);">
-                                <i class="fa-solid fa-chart-simple"></i>
+                            <div class="stat-icon"
+                                style="background-color: rgba(46, 125, 50, 0.1); color: var(--color-success);">
+                                <i class="fa-solid fa-users"></i>
                             </div>
-                            <div class="stat-value">12</div>
+                            <div class="stat-value">1,234</div>
                             <div class="stat-label">Active Users</div>
                         </div>
 
                         <div class="stat-card">
-                            <div class="stat-icon" style="background-color: rgba(2, 119, 189, 0.1); color: var(--color-info);">
+                            <div class="stat-icon"
+                                style="background-color: rgba(2, 119, 189, 0.1); color: var(--color-info);">
                                 <i class="fa-solid fa-check"></i>
                             </div>
                             <div class="stat-value">0</div>
@@ -116,7 +129,9 @@
                     </div>
                     <div class="content-block">
                         <p style="color: var(--color-text-muted); font-size: 1.1rem; line-height: 1.8;">
-                            Thanks to citizen reports and community engagement, we've resolved <strong style="color: var(--color-primary);">0 issues</strong> this month, making our city cleaner and safer for everyone.
+                            Thanks to citizen reports and community engagement, we've resolved <strong
+                                style="color: var(--color-primary);">124 issues</strong> this month, making our city
+                            cleaner and safer for everyone.
                         </p>
                     </div>
                 </section>
@@ -125,4 +140,5 @@
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
