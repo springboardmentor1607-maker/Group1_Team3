@@ -5,7 +5,13 @@ import jwt from "jsonwebtoken"
 
 export const signup = async (req, res) => {
 
+
+
+    
+    
+
     try {
+
 
         const { name, email, password, role, mobile } = req.body;
         const existingUser = await Users.findOne({ email });
@@ -35,7 +41,13 @@ export const signup = async (req, res) => {
         res.status(500).json({ message: "Sign up fail", error: error.message })
     }
 
-}
+    
+
+   
+
+} 
+
+
 
 
 
