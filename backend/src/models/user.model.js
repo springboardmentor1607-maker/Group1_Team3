@@ -2,10 +2,10 @@ import mongoose from 'mongoose'
 
 const userSchema = new mongoose.Schema(
     {
-        name : {
-            type : String,
-            require : true,
-            trim : true,
+        name: {
+            type: String,
+            require: true,
+            trim: true,
         },
 
         email : {
@@ -19,18 +19,22 @@ const userSchema = new mongoose.Schema(
             match : [/^[0-9]{10}$/, "Mobile Number must be exactly 10 digits"],
         },
 
-        password : {
-            type : String,
-            require : true,
+        password: {
+            type: String,
+            require: true,
         },
-        location : {
-            type : String,
-            default : null,
+        location: {
+            type: String,
+            default: null,
         },
-        role : {
-            type : String,
-            enum : ["user","volunteer","admin"],
-            default : "user",
+        role: {
+            type: String,
+            enum: ["user", "volunteer", "admin"],
+            default: "user",
+        },
+        mobile: {
+            type: String,
+            default: null,
         },
         profilePhoto : {
             type : String
@@ -40,8 +44,8 @@ const userSchema = new mongoose.Schema(
         }
 
     },
-    {timestamps : true}
+    { timestamps: true }
 )
 
-const Users = mongoose.model("User",userSchema);
+const Users = mongoose.model("User", userSchema);
 export default Users

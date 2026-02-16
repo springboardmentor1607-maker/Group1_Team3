@@ -1,4 +1,4 @@
-📌 Civic Issue Reporting & Tracking App
+📌 Civic Issue Reporting & Tracking App(Web)
 🔧 Tech Stack
 
 Frontend: React

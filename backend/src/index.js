@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 import cors from 'cors'
 
 dotenv.config();
-
+console.log("Check MONGO_URL:", process.env.MONGO_URL);
 
 
 const app = express();
@@ -24,6 +24,6 @@ app.use("/api/user",userRoutes)
 
 const PORT = process.env.PORT
 
-app.listen(PORT,()=>{
+app.listen(PORT, () => {
     console.log("welcome to civic_issue");
 })

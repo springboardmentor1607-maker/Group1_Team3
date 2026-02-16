@@ -1,9 +1,9 @@
 export const validateSignup = (req, res, next) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !role) {
         return res.status(400).json({
-            message: "All fields (name, email, password) are required."
+            message: "All fields (name, email, password, role) are required."
         });
     }
 
@@ -15,7 +15,6 @@ export const validateSignup = (req, res, next) => {
 
     next();
 };
-
 
 export const validateLogin = (req, res, next) => {
     const { email, password } = req.body;
