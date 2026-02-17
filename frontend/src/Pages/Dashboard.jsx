@@ -180,7 +180,7 @@ const Dashboard = () => {
             </a>
           </nav>
 
-          <div className="sidebar-footer">
+          <div className="sidebar-footer" onClick={()=>navigate("/profile")} style={{cursor : "pointer"}}>
             <div className="user-mini-profile">
               <div className="avatar" style={{ backgroundColor: 'var(--color-accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
                 {user.name ? user.name.substring(0, 2).toUpperCase() : 'JD'}

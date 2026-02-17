@@ -18,7 +18,8 @@ export const updateProfile = async (req,res)=>{
 
         const userId = req.user.id
         const { name,mobile,location,bio } = req.body;
-        const user = Users.findById(userId);
+
+        const user = await Users.findById(userId);
 
         if(!user) res.status(404).json({message : "user not found"});
 
@@ -32,6 +33,7 @@ export const updateProfile = async (req,res)=>{
         await user.save();
 
         res.status(200).json({
+            success : true,
             message : "Profile Updated Successfully",
             user
         })
