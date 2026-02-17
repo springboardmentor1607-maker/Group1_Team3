@@ -6,6 +6,7 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import ProtectedRoute from "./component/ProtectedRoute.js";
 import Dashboard from "./Pages/Dashboard";
 import Profile from "./Pages/profile";
+import Chatbot from "./components/Chatbot";
 
 function AppContent() {
   const location = useLocation();
@@ -34,6 +35,7 @@ function AppContent() {
 
         <Route path="*" element={<Login />} />
       </Routes>
+      <Chatbot />
     </>
   );
 }
