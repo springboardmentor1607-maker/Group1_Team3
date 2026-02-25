@@ -1,0 +1,309 @@
+/* Import Bootstrap Icons */
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
+:root {
+  --primary: #253463;
+  --primary-light: #3664a3;
+  --accent: #8ea7b6;
+  --bg-light: #f4f7fb;
+  --white: #ffffff;
+  --text-dark: #1f2937;
+  --text-muted: #6b7280;
+  --danger: #e63946;
+
+  --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.05);
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+}
+
+/* ================= PAGE ================= */
+
+.report-issue-page {
+  background: linear-gradient(135deg, #eef2ff 0%, #dbeafe 100%);
+  min-height: 100vh;
+  padding: 5rem 2rem 2rem;
+  font-family: "Poppins", sans-serif;
+  color: var(--text-dark);
+}
+
+/* ================= HEADER ================= */
+
+.report-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.report-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(to right, var(--primary), var(--primary-light));
+  -webkit-background-clip: text;
+  color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.report-header p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+/* ================= CONTAINER ================= */
+
+.containers {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.report-content-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+/* ================= CARD ================= */
+
+.form-section {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+}
+
+.form-section:hover {
+  transform: translateY(-2px);
+}
+
+.form-section h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================= FORM ================= */
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+}
+
+.form-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+}
+
+.form-control {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--primary-light);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(54, 100, 163, 0.15);
+  outline: none;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 110px;
+}
+
+/* ================= FILE UPLOAD ================= */
+
+.custom-file-upload {
+  display: flex;
+  align-items: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #f9fafb;
+  transition: 0.2s ease;
+}
+
+.custom-file-upload:hover {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.file-name-display {
+  padding: 12px;
+  flex-grow: 1;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-upload {
+  background: var(--primary);
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-upload:hover {
+  background: var(--primary-light);
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.image-warning {
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* ================= IMAGE PREVIEW ================= */
+
+.image-preview-list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.image-preview-container {
+  width: 85px;
+  height: 85px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+
+.image-preview-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.remove-image-btn:hover {
+  background: #000;
+}
+
+/* ================= BUTTON ================= */
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* ================= MAP ================= */
+
+.map-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.map-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 450px;
+}
+
+.location-selected-text {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1024px) {
+  .report-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .map-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 450px;
+  }
+}
+
+@media (max-width: 768px) {
+  .report-issue-page {
+    padding: 4rem 1rem 2rem;
+  }
+
+  .report-header h1 {
+    font-size: 1.6rem;
+  }
+}

@@ -5,8 +5,9 @@ import chatRoutes from './routes/chatbot.route.js'
 import { connectDB } from './config/db.js';
 import dotenv from 'dotenv'
 import cors from 'cors'
-
 dotenv.config();
+
+
 console.log("Check MONGO_URL:", process.env.MONGO_URL);
 
 
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use("/api/auth",authRoutes)
 app.use("/api/user",userRoutes)
 app.use("/api/chat",chatRoutes)
+
 
 
 const PORT = process.env.PORT
