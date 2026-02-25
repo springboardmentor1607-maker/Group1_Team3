@@ -79,7 +79,7 @@ const Dashboard = () => {
               </div>
               <div className="header-actions">
                 <button className="action-btn btn-text">Dashboard</button>
-                <button className="action-btn btn-text">Report Issue</button>
+              <button className="action-btn btn-text" onClick={() => navigate('/reportissue')}>Report Issue</button>
                 <button className="action-btn btn-text">View Complaints</button>
                 <button className="action-btn btn-primary" style={{ backgroundColor: 'white', color: 'var(--color-primary)', border: '1px solid var(--color-border)' }} onClick={handleLogout}>Login</button>
                 <button className="action-btn btn-primary">Register</button>
@@ -166,7 +166,7 @@ const Dashboard = () => {
               <i className="fa-solid fa-house nav-icon"></i>
               <span>Dashboard</span>
             </a>
-            <a href="#" className="nav-item">
+            <a href="#" className="nav-item" onClick={(e) => { e.preventDefault(); navigate('/reportissue'); }}>
               <i className="fa-solid fa-pen-to-square nav-icon"></i>
               <span>Report Issue</span>
             </a>
@@ -201,7 +201,7 @@ const Dashboard = () => {
             </div>
             <div className="header-actions">
               <button className="action-btn btn-text">Dashboard</button>
-              <button className="action-btn btn-text">Report Issue</button>
+              <button className="action-btn btn-text" onClick={() => navigate('/reportissue')}>Report Issue</button>
               <button className="action-btn btn-text">View Complaints</button>
               <button className="action-btn btn-primary" onClick={handleLogout}>Logout</button>
             </div>
@@ -279,7 +279,7 @@ const Dashboard = () => {
                   <h2 className="section-title">Quick Actions</h2>
                 </div>
                 <div className="quick-actions-grid">
-                  <button className="action-card-btn primary">
+                  <button className="action-card-btn primary" onClick={() => navigate('/reportissue')}>
                     <i className="fa-solid fa-plus" style={{ marginRight: '8px' }}></i>
                     Report New Issue
                   </button>

@@ -17,7 +17,7 @@ import Icon from "ol/style/Icon";
 import { toLonLat } from "ol/proj";
 import { reverseGeocode, getInitialCenterForAddress } from "../utils/MapUtils";
 
-const API_URL = "http://localhost:5000/api/complaints";
+const API_URL = "http://localhost:5000/api/complaints/create";
 
 const ReportIssue = () => {
   // Get user from localStorage
@@ -207,15 +207,12 @@ const ReportIssue = () => {
     setLoading(true);
     setUploadProgress(null);
 
-    const data = new FormData();
-    Object.keys(formData).forEach((key) => data.append(key, formData[key]));
-
-    imageFiles.forEach((file) => {
-      data.append("images", file);
-    });
-
-    data.append("latitude", selectedLocation[1]);
-    data.append("longitude", selectedLocation[0]);
+    // Prepare JSON data instead of FormData (no image upload for now)
+    const data = {
+      ...formData,
+      latitude: selectedLocation[1],
+      longitude: selectedLocation[0]
+    };
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -234,18 +231,10 @@ const ReportIssue = () => {
     try {
       const response = await axios.post(API_URL, data, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         timeout: 120000,
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total,
-            );
-            setUploadProgress(percentCompleted);
-          }
-        },
       });
 
       Swal.fire({
@@ -426,19 +415,9 @@ const ReportIssue = () => {
               </div>
 
               <div className="form-group">
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <label className="form-label">
-                    <i className="bi bi-image"></i> Upload Images (Max 3)
-                  </label>
-                  {imageFiles.length === 0 && (
-                    <p className="image-warning">
-                      <i class="bi bi-exclamation-triangle"></i> Please upload
-                      at least one image.
-                    </p>
-                  )}
-                </div>
+                <label className="form-label">
+                  <i className="bi bi-image"></i> Upload Images (Max 3, Optional)
+                </label>
                 <div className="custom-file-upload">
                   <span className="file-name-display">
                     {imageFiles.length === 0
@@ -460,7 +439,6 @@ const ReportIssue = () => {
                     accept="image/*"
                     multiple
                     onChange={handleImageChange}
-                    required={imageFiles.length === 0}
                   />
                 </div>
               </div>

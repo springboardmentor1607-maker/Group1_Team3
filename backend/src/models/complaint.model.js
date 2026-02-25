@@ -8,15 +8,30 @@ const complaintSchema = new mongoose.Schema({
         required : true,
     },
     title : {
-        type :String,
+        type : String,
         required : true,
+    },
+    issueType : {
+        type : String,
+        required : true,
+        enum : ["pothole", "garbage", "streetlight", "water_leak", "other"]
+    },
+    priority : {
+        type : String,
+        enum : ["low", "medium", "high"],
+        default : "medium"
     },
     description : {
         type : String,
         required : true,
     },
     photo : {
-        type : String
+        type : String,
+        default : null
+    },
+    landmark : {
+        type : String,
+        default : ""
     },
     location_coords : {
         lat : Number,
@@ -42,4 +57,4 @@ const complaintSchema = new mongoose.Schema({
     {timestamps : {createdAt : "created_at",updatedAt : "updated_at"}}
 )
 
-module.exports = mongoose.model("Complaint",complaintSchema)
+export default mongoose.model("Complaint",complaintSchema)
