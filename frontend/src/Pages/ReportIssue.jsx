@@ -17,8 +17,9 @@ import Icon from "ol/style/Icon";
 import { toLonLat } from "ol/proj";
 import { reverseGeocode, getInitialCenterForAddress } from "../utils/MapUtils";
 import Modify from 'ol/interaction/Modify'
+import API from "../api/axios.js";
 
-const API_URL = "http://localhost:5000/api/complaints";
+
 
 const ReportIssue = () => {
   // Get user from localStorage
@@ -247,15 +248,15 @@ const ReportIssue = () => {
     setLoading(true);
     setUploadProgress(null);
 
-    const data = new FormData();
-    Object.keys(formData).forEach((key) => data.append(key, formData[key]));
+    // const data = new FormData();
+    // Object.keys(formData).forEach((key) => data.append(key, formData[key]));
 
-    imageFiles.forEach((file) => {
-      data.append("images", file);
-    });
+    // imageFiles.forEach((file) => {
+    //   data.append("images", file);
+    // });
 
-    data.append("latitude", selectedLocation[1]);
-    data.append("longitude", selectedLocation[0]);
+    // data.append("latitude", selectedLocation[1]);
+    // data.append("longitude", selectedLocation[0]);
    
 
 
@@ -272,53 +273,54 @@ const ReportIssue = () => {
       setLoading(false);
       return;
     } 
-    for (let [key, value] of data.entries()) {
-      console.log(key, "=>", value);
-    }
+    // for (let [key, value] of data.entries()) {
+    //   console.log(key, "=>", value);
+    // }
 
     try {
       
-      const response = await axios.post(API_URL, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 120000,
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total,
-            );
-            setUploadProgress(percentCompleted);
-          }
-        },
-      });
+      const response = await API.post("/complaints/create",
+                    {
+                      ...formData,
+                      latitude: selectedLocation[1],
+                      longitude: selectedLocation[0],
+                    },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                      }
+                 })
 
-      Swal.fire({
-        icon: "success",
-        title: "Issue Reported Successfully!",
-        text: "Thank you for making your community better.",
-        background: "linear-gradient(to bottom, #D3F1DE, #81B79D)",
-        color: "#1B1B1B",
-        confirmButtonColor: "#005347",
-        timer: 3000,
-        timerProgressBar: true,
-      });
+      if(response.data.success){
+        Swal.fire({
+          icon: "success",
+          title: "Issue Reported Successfully!",
+          text: "Thank you for making your community better.",
+          background: "linear-gradient(to bottom, #D3F1DE, #81B79D)",
+          color: "#1B1B1B",
+          confirmButtonColor: "#005347",
+          timer: 3000,
+          timerProgressBar: true,
+        });
+  
+        setFormData({
+          title: "",
+          issueType: "",
+          priority: "medium",
+          address: "",
+          landmark: "",
+          description: "",
+        });
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        setImageFiles([]);
+        setImagePreviews([]);
+        setSelectedLocation(null);
+        markerSource.clear();
+        setUploadProgress(null);
+      }
 
-      setFormData({
-        title: "",
-        issueType: "",
-        priority: "medium",
-        address: "",
-        landmark: "",
-        description: "",
-      });
-      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-      setImageFiles([]);
-      setImagePreviews([]);
-      setSelectedLocation(null);
-      markerSource.clear();
-      setUploadProgress(null);
+
     } catch (err) {
       console.error("Issue submit error:", err, {
         response: err?.response?.data,
@@ -472,19 +474,9 @@ const ReportIssue = () => {
               </div>
 
               <div className="form-group">
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <label className="form-label">
-                    <i className="bi bi-image"></i> Upload Images (Max 3)
-                  </label>
-                  {imageFiles.length === 0 && (
-                    <p className="image-warning">
-                      <i class="bi bi-exclamation-triangle"></i> Please upload
-                      at least one image.
-                    </p>
-                  )}
-                </div>
+                <label className="form-label">
+                  <i className="bi bi-image"></i> Upload Images (Max 3, Optional)
+                </label>
                 <div className="custom-file-upload">
                   <span className="file-name-display">
                     {imageFiles.length === 0
