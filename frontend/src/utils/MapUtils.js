@@ -1,11 +1,6 @@
 import { fromLonLat } from "ol/proj";
 
-/**
- * Reverse geocode coordinates to get address string
- * @param {number} lon - Longitude
- * @param {number} lat - Latitude
- * @returns {Promise<string>} - Address string
- */
+
 export const reverseGeocode = async (lon, lat) => {
   try {
     const response = await fetch(
