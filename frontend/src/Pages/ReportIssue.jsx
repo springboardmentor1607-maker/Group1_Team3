@@ -16,8 +16,10 @@ import Style from "ol/style/Style";
 import Icon from "ol/style/Icon";
 import { toLonLat } from "ol/proj";
 import { reverseGeocode, getInitialCenterForAddress } from "../utils/MapUtils";
+import Modify from 'ol/interaction/Modify'
+import API from "../api/axios.js";
 
-const API_URL = "http://localhost:5000/api/complaints/create";
+
 
 const ReportIssue = () => {
   // Get user from localStorage
@@ -39,6 +41,7 @@ const ReportIssue = () => {
   const [map, setMap] = useState(null);
   const [markerSource] = useState(new VectorSource());
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const mapInstanceRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -74,21 +77,22 @@ const ReportIssue = () => {
   ];
 
   useEffect(() => {
+    if (!user) return;
+  
     let mounted = true;
-    let initialMap;
+  
     const markerStyle = new Style({
       image: new Icon({
         anchor: [0.5, 1],
         src: "https://openlayers.org/en/latest/examples/data/icon.png",
       }),
     });
-
+  
     const initMap = async () => {
-      // Use user's location if available, otherwise default to a city center
       const userLocation = user?.location || "";
       const centerProjected = await getInitialCenterForAddress(userLocation);
-
-      initialMap = new Map({
+  
+      const mapInstance = new Map({
         target: mapElement.current,
         layers: [
           new TileLayer({ source: new OSM() }),
@@ -100,53 +104,90 @@ const ReportIssue = () => {
         }),
       });
 
+      mapInstanceRef.current = mapInstance;
+      setMap(mapInstance);
+  
       if (!mounted) {
-        initialMap.setTarget(undefined);
+        mapInstance.setTarget(undefined);
         return;
       }
-
-      setMap(initialMap);
-
-      initialMap.on("click", async (evt) => {
-        const coords = toLonLat(evt.coordinate);
+  
+      // Disable default double click zoom
+   
+  
+      // Create initial marker at center
+      const initialFeature = new Feature({
+        geometry: new Point(centerProjected),
+      });
+  
+      markerSource.clear();
+      markerSource.addFeature(initialFeature);
+  
+      // Save initial lat/lng
+      const initialCoords = toLonLat(centerProjected);
+      setSelectedLocation(initialCoords);
+  
+      try {
+        const addressString = await reverseGeocode(
+          initialCoords[0],
+          initialCoords[1]
+        );
+        setFormData((prev) => ({
+          ...prev,
+          address: addressString,
+        }));
+      } catch (e) {
+        console.error("Reverse geocode failed:", e);
+      }
+  
+      // MODIFY INTERACTION (drag marker)
+      const modifyInteraction = new Modify({
+        source: markerSource,
+      });
+  
+      // modifyInteraction.setActive(false);
+      mapInstance.addInteraction(modifyInteraction);
+  
+      // Enable drag on double click on marker
+      
+      // Update address after dragging ends
+      modifyInteraction.on("modifyend", async (event) => {
+        const feature = event.features.item(0);
+        const geometry = feature.getGeometry();
+        const coords = toLonLat(geometry.getCoordinates());
+  
         setSelectedLocation(coords);
-
-        markerSource.clear();
-        const marker = new Feature({
-          geometry: new Point(evt.coordinate),
-        });
-        markerSource.addFeature(marker);
-
+  
         try {
-          const addressString = await reverseGeocode(coords[0], coords[1]);
-          setFormData((prev) => ({ ...prev, address: addressString }));
-        } catch (e) {
-          console.error("Reverse geocode failed:", e);
+          const addressString = await reverseGeocode(
+            coords[0],
+            coords[1]
+          );
+  
           setFormData((prev) => ({
             ...prev,
-            address: `Lat: ${coords[1].toFixed(6)}, Lon: ${coords[0].toFixed(
-              6,
-            )}`,
+            address: addressString,
           }));
+        } catch (e) {
+          console.error("Reverse geocode failed:", e);
         }
+  
+        // modifyInteraction.setActive(false); // disable again after move
       });
+  
+      setMap(mapInstance);
     };
-
-    if (user) {
-      initMap();
-    }
-
+  
+    initMap();
+  
     return () => {
       mounted = false;
-      if (initialMap) initialMap.setTarget(undefined);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setTarget(null);
+        mapInstanceRef.current = null;
+      }
     };
-  }, [markerSource, user]);
-
-  useEffect(() => {
-    return () => {
-      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [imagePreviews]);
+  }, [user, markerSource]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -207,12 +248,17 @@ const ReportIssue = () => {
     setLoading(true);
     setUploadProgress(null);
 
-    // Prepare JSON data instead of FormData (no image upload for now)
-    const data = {
-      ...formData,
-      latitude: selectedLocation[1],
-      longitude: selectedLocation[0]
-    };
+    // const data = new FormData();
+    // Object.keys(formData).forEach((key) => data.append(key, formData[key]));
+
+    // imageFiles.forEach((file) => {
+    //   data.append("images", file);
+    // });
+
+    // data.append("latitude", selectedLocation[1]);
+    // data.append("longitude", selectedLocation[0]);
+   
+
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -226,42 +272,55 @@ const ReportIssue = () => {
       });
       setLoading(false);
       return;
-    }
+    } 
+    // for (let [key, value] of data.entries()) {
+    //   console.log(key, "=>", value);
+    // }
 
     try {
-      const response = await axios.post(API_URL, data, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 120000,
-      });
+      
+      const response = await API.post("/complaints/create",
+                    {
+                      ...formData,
+                      latitude: selectedLocation[1],
+                      longitude: selectedLocation[0],
+                    },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                      }
+                 })
 
-      Swal.fire({
-        icon: "success",
-        title: "Issue Reported Successfully!",
-        text: "Thank you for making your community better.",
-        background: "linear-gradient(to bottom, #D3F1DE, #81B79D)",
-        color: "#1B1B1B",
-        confirmButtonColor: "#005347",
-        timer: 3000,
-        timerProgressBar: true,
-      });
+      if(response.data.success){
+        Swal.fire({
+          icon: "success",
+          title: "Issue Reported Successfully!",
+          text: "Thank you for making your community better.",
+          background: "linear-gradient(to bottom, #D3F1DE, #81B79D)",
+          color: "#1B1B1B",
+          confirmButtonColor: "#005347",
+          timer: 3000,
+          timerProgressBar: true,
+        });
+  
+        setFormData({
+          title: "",
+          issueType: "",
+          priority: "medium",
+          address: "",
+          landmark: "",
+          description: "",
+        });
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        setImageFiles([]);
+        setImagePreviews([]);
+        setSelectedLocation(null);
+        markerSource.clear();
+        setUploadProgress(null);
+      }
 
-      setFormData({
-        title: "",
-        issueType: "",
-        priority: "medium",
-        address: "",
-        landmark: "",
-        description: "",
-      });
-      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-      setImageFiles([]);
-      setImagePreviews([]);
-      setSelectedLocation(null);
-      markerSource.clear();
-      setUploadProgress(null);
+
     } catch (err) {
       console.error("Issue submit error:", err, {
         response: err?.response?.data,
@@ -439,6 +498,7 @@ const ReportIssue = () => {
                     accept="image/*"
                     multiple
                     onChange={handleImageChange}
+                    // required={imageFiles.length === 0}
                   />
                 </div>
               </div>

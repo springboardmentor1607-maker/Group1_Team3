@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
 import './Chatbot.css';
 import API from '../api/axios';
+
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -43,6 +44,7 @@ const Chatbot = () => {
 
       // Call Backend API
       // Note: Adjust URL if your backend runs on a different port/url
+      
       const response = await API.post("/chat",{
         message : userMessage,
         userId : userId
