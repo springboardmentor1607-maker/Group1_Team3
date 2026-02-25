@@ -1,15 +1,24 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ProfileEdit from "../components/profile/ProfileEdit";
 import Security from "../components/profile/Security";
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("profile");
+  const [editMode, setEditMode] = useState(false);
 
+  const fileInputRef = useRef(null);
+  
   const user = JSON.parse(localStorage.getItem("user")) || {};
 
   const avatarInitial = user?.name
     ? user.name.charAt(0).toUpperCase()
     : "?";
+
+    const handleImageChange = (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      console.log(file)
+    }
 
 
     
@@ -38,8 +47,16 @@ const Profile = () => {
           >
             {/* User Card */}
             <div style={{ textAlign: "center", marginBottom: "25px" }}>
+            <input type="file" accept="image/*" ref={fileInputRef} style={{display : "none"}} onChange={handleImageChange}/>
               <div
+                onClick={()=> {
+                  if(editMode){
+                    fileInputRef.current.click();
+                  }
+                }}
                 style={{
+                  cursor : editMode ? "pointer" : "default",
+                  opacity : editMode ? 1 : 0.6,
                   width: "80px",
                   height: "80px",
                   borderRadius: "50%",
@@ -50,14 +67,15 @@ const Profile = () => {
                   justifyContent: "center",
                   fontSize: "28px",
                   fontWeight: "bold",
-                  margin: "0 auto 15px"
+                  margin: "0 auto 15px",
+                  
                 }}
               >
                 {avatarInitial}
               </div>
 
               <h3 style={{ margin: "5px 0" }}>{user?.name}</h3>
-              <p style={{ margin: 0, color: "#666" }}>@{user?.username}</p>
+              <p style={{ margin: 0, color: "#666" }}>{user?.email}</p>
               <p style={{ margin: "5px 0", color: "#4f46e5" }}>
                 {user?.role}
               </p>
@@ -107,7 +125,7 @@ const Profile = () => {
               boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
             }}
           >
-            {activeTab === "profile" && <ProfileEdit user={user} />}
+            {activeTab === "profile" && <ProfileEdit user={user} editMode = {editMode} setEditMode = {setEditMode} />}
             {activeTab === "security" && <Security user={user} />}
           </div>
 

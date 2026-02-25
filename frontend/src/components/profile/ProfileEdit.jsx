@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import Swal from "sweetalert2";
 import API from "../../api/axios.js";
 
-const ProfileEdit = ({ user }) => {
-  const [editMode, setEditMode] = useState(false);
+const ProfileEdit = ({ user, editMode, setEditMode }) => {
+
+  
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
