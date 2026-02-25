@@ -17,6 +17,7 @@ function Navbar() {
         <Link to="#">Report Issue</Link>
         <Link to="#">View Complaints</Link>
         <Link to="/profile">Profile</Link>
+        <Link to="/reportissue">Report</Link>
       </div>
 
       {/* Right: Auth buttons */}
