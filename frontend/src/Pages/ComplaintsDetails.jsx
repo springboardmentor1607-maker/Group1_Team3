@@ -3,10 +3,31 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ComplaintDetails = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
   const { id } = useParams();
   const navigate = useNavigate();
   const [complaint, setComplaint] = useState(null);
   const [zoomImage, setZoomImage] = useState(null);
+
+  const handleAssign = async (volunteerId) => {
+    try {
+      const token = localStorage.getItem("token");
+  
+      await axios.put(
+        `http://localhost:5000/api/admin/assign/${id}`,
+        { volunteerId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      alert("Volunteer Assigned");
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
     const fetchComplaint = async () => {
@@ -45,7 +66,11 @@ const ComplaintDetails = () => {
       <div style={{ maxWidth: "800px", margin: "auto" }}>
         {/* BACK BUTTON */}
         <button
-          onClick={() => navigate("/complaints",{replace: true})}
+          onClick={() =>{if (user.role === "admin") {
+            navigate("/admin-dashboard");
+          } else {
+            navigate("/complaints");
+          }}}
           style={{
             marginBottom: "20px",
             padding: "8px 16px",
@@ -83,9 +108,7 @@ const ComplaintDetails = () => {
             : "N/A"}
         </p>
 
-          <p style={{ marginTop: "15px" }}>
-            <strong>Description:</strong> {complaint.description}
-          </p>
+         
 
           {/* IMAGE */}
           {complaint.images && complaint.images.length > 0 ? (
@@ -138,6 +161,29 @@ const ComplaintDetails = () => {
               No image uploaded.
             </p>
           )}
+           <p style={{ marginTop: "15px" }}>
+            <strong>Description:</strong> {complaint.description}
+          </p>
+           <p style={{ marginTop: "15px" }}>
+            <strong>Address:</strong> {complaint.address}
+          </p>
+
+          {user?.role === "admin" && complaint.status === "received" && (
+            <div style={{ marginTop: "30px" }}>
+              <h3>Assign Volunteer</h3>
+
+              <select
+                style={{ padding: "8px", marginTop: "10px" }}
+                onChange={(e) => handleAssign(e.target.value)}
+              >
+                <option value="">Select Volunteer</option>
+                <option value="v1">Rahul Sharma</option>
+                <option value="v2">Anjali Verma</option>
+                <option value="v3">Mohit Singh</option>
+              </select>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
