@@ -17,14 +17,20 @@ function Login() {
         email,
         password,
       });
-      console.log("Login Response:", response);
-      console.log("Full Login Response:", response.data);
 
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      console.log("Token after saving:", localStorage.getItem("token"));
+      const {user,token} = response.data;
+      
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
       alert("Login Successful");
-      navigate("/dashboard");
+      if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (user.role === "volunteer") {
+        navigate("/volunteer-dashboard");
+      } else {
+        navigate("/dashboard"); // normal user
+      }
 
     } catch (error) {
       alert(error.response?.data?.message || "Login Failed");

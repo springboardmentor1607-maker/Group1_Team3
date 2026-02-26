@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
+import API from "../api/axios";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -20,36 +21,29 @@ const AdminDashboard = () => {
   ]);
 
   // Dummy Complaints
-  const [complaints, setComplaints] = useState([
-    {
-      _id: "c1",
-      title: "Garbage near park",
-      user: "Ramesh",
-      status: "reported",
-      assignedTo: null
-    },
-    {
-      _id: "c2",
-      title: "Broken streetlight",
-      user: "Sita",
-      status: "assigned",
-      assignedTo: "Rahul Sharma"
-    },
-    {
-      _id: "c3",
-      title: "Water leakage",
-      user: "Amit",
-      status: "in_progress",
-      assignedTo: "Anjali Verma"
-    },
-    {
-      _id: "c4",
-      title: "Pothole on main road",
-      user: "Priya",
-      status: "resolved",
-      assignedTo: "Mohit Singh"
-    }
-  ]);
+  const [complaints, setComplaints] = useState([])
+
+  useEffect(()=>{
+    const fetchComplaints = async () => {
+        try {
+          const token = localStorage.getItem("token");
+    
+        const res = await API.get("/complaints",{
+          headers : {
+            Authorization : `Bearer ${token}`
+          }
+        })
+    
+          
+    
+          setComplaints(res.data.complaints); // depends on your response structure
+        } catch (error) {
+          console.error("Error fetching complaints:", error);
+        }
+      };
+    
+      fetchComplaints();
+  },[])
 
   const handleAssign = (complaintId, volunteerId) => {
     const volunteer = volunteers.find(v => v._id === volunteerId);
@@ -69,6 +63,8 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
     navigate("/login");
   };
 
@@ -137,41 +133,44 @@ const AdminDashboard = () => {
             <thead>
               <tr>
                 <th>Title</th>
-                <th>Reported By</th>
-                <th>Status</th>
+                <th>Issue Type</th>
+                <th>Priority</th>
                 <th>Assigned To</th>
                 <th>Action</th>
+                <th>Register Date</th>
               </tr>
             </thead>
             <tbody>
               {complaints.map((complaint) => (
                 <tr key={complaint._id}>
-                  <td>{complaint.title}</td>
-                  <td>{complaint.user}</td>
+                  <td style={{cursor : "pointer", color: "#1a237e", fontWeight: "600"}} onClick={()=>navigate(`/complaint/${complaint._id}`)}>{complaint.title}</td>
+                  <td>{complaint.issueType}</td>
+                  <td>{complaint.priority}</td>
+                  
                   <td>
                     <span className={`status ${complaint.status}`}>
                       {complaint.status}
                     </span>
                   </td>
-                  <td>{complaint.assignedTo || "Not Assigned"}</td>
                   <td>
-                    {complaint.status === "reported" ? (
-                      <select
-                        onChange={(e) =>
-                          handleAssign(complaint._id, e.target.value)
-                        }
-                      >
-                        <option value="">Select Volunteer</option>
-                        {volunteers.map((vol) => (
-                          <option key={vol._id} value={vol._id}>
-                            {vol.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
+        {complaint.status === "received" ? (
+          <select
+            onChange={(e) =>
+              handleAssign(complaint._id, e.target.value)
+            }
+          >
+            <option value="">Select Volunteer</option>
+            {volunteers.map((vol) => (
+              <option key={vol._id} value={vol._id}>
+                {vol.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          "Assigned"
+        )}
+      </td>
+      <td>{complaint.created_at}</td>
                 </tr>
               ))}
             </tbody>
