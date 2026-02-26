@@ -9,11 +9,12 @@ import {
 } from '../controllers/complaint.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 import { authorizeRoles } from '../middleware/roleCheck.middleware.js';
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
 // User routes
-router.post("/create", verifyToken, createComplaint);
+router.post("/create", verifyToken, upload.array("images",3), createComplaint);
 router.get("/my-complaints", verifyToken, getUserComplaints);
 router.get("/:id", verifyToken, getComplaintById);
 

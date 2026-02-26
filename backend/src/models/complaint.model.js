@@ -25,8 +25,8 @@ const complaintSchema = new mongoose.Schema({
         type : String,
         required : true,
     },
-    photo : {
-        type : String,
+    images : {
+        type : [String],
         default : null
     },
     landmark : {
