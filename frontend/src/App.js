@@ -8,6 +8,7 @@ import Dashboard from "./Pages/Dashboard";
 import Profile from "./Pages/profile";
 import ReportIssue from "./Pages/ReportIssue.jsx"
 import Chatbot from "./components/Chatbot";
+import AdminDashboard from "./Pages/AdminDashboard.jsx";
 
 function AppContent() {
   const location = useLocation();
@@ -21,7 +22,7 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         
-        
+        <Route path="/admin-dashboard" element= {<AdminDashboard/>}/>
         <Route path="/dashboard" element = {
           <ProtectedRoute>
             <Dashboard />
@@ -39,7 +40,7 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        <Route path="*" element={<Login />} />
+        {/* <Route path="*" element={<Login />} /> */}
       </Routes>
       <Chatbot />
     </>
