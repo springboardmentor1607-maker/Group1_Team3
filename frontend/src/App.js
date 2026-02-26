@@ -6,8 +6,10 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import ProtectedRoute from "./component/ProtectedRoute.js";
 import Dashboard from "./Pages/Dashboard";
 import Profile from "./Pages/profile";
-import ReportIssue from "./Pages/ReportIssue.jsx"
+import ReportIssue from "./Pages/ReportIssue.jsx";
 import Chatbot from "./components/Chatbot";
+import ViewComplaints from "./Pages/ViewComplaints";
+import ComplaintDetails from "./Pages/ComplaintsDetails";
 
 function AppContent() {
   const location = useLocation();
@@ -16,31 +18,62 @@ function AppContent() {
   return (
     <>
       {!isDashboard && <Navbar />}
+
       <Routes>
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        
-        
-        <Route path="/dashboard" element = {
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
 
-        <Route path="/profile" element={
-          <ProtectedRoute>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
               <Profile />
-          </ProtectedRoute>
-        } />
-         <Route path="/reportissue" element={
-          <ProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reportissue"
+          element={
+            <ProtectedRoute>
               <ReportIssue />
-          </ProtectedRoute>
-        } />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ✅ NEW ROUTES ADDED BELOW */}
+
+        <Route
+          path="/complaints"
+          element={
+            <ProtectedRoute>
+              <ViewComplaints />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/complaint/:id"
+          element={
+            <ProtectedRoute>
+              <ComplaintDetails />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<Login />} />
       </Routes>
+
       <Chatbot />
     </>
   );
