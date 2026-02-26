@@ -103,8 +103,8 @@ const Dashboard = () => {
               <div className="header-actions">
                 <button className="action-btn btn-text">Dashboard</button>
               <button className="action-btn btn-text" onClick={() => navigate('/reportissue')}>Report Issue</button>
-                <button className="action-btn btn-text">View Complaints</button>
-                <button className="action-btn btn-primary" style={{ backgroundColor: 'white', color: 'var(--color-primary)', border: '1px solid var(--color-border)' }} onClick={handleLogout}>Login</button>
+                <button className="action-btn btn-text" onClick = {() => navigate('/complaints')}> View Complaints </button>
+                <button className="action-btn btn-primary" style={{ backgroundColor: 'white', color: 'var(--color-primary)', border: '1px solid var(--color-border)' }} onClick={handleLogout}>Logout</button>
                 <button className="action-btn btn-primary">Register</button>
               </div>
             </header>
@@ -193,7 +193,8 @@ const Dashboard = () => {
               <i className="fa-solid fa-pen-to-square nav-icon"></i>
               <span>Report Issue</span>
             </a>
-            <a href="#" className="nav-item">
+            <a href="#" className="nav-item"
+              onClick={(e) => { e.preventDefault(); navigate("/complaints"); }}>
               <i className="fa-solid fa-eye nav-icon"></i>
               <span>View Complaints</span>
             </a>
@@ -225,7 +226,7 @@ const Dashboard = () => {
             <div className="header-actions">
               <button className="action-btn btn-text">Dashboard</button>
               <button className="action-btn btn-text" onClick={() => navigate('/reportissue')}>Report Issue</button>
-              <button className="action-btn btn-text">View Complaints</button>
+              <button className="action-btn btn-text" onClick ={() => navigate("/complaints")}><i className= "fa-solid fa-list" style ={{ marginRight:'8px'}}></i>View Complaints</button>
               <button className="action-btn btn-primary" onClick={handleLogout}>Logout</button>
             </div>
           </header>
@@ -315,7 +316,7 @@ const Dashboard = () => {
                     <i className="fa-solid fa-plus" style={{ marginRight: '8px' }}></i>
                     Report New Issue
                   </button>
-                  <button className="action-card-btn">
+                  <button className="action-card-btn" onClick ={() => navigate("/complaints")}>
                     <i className="fa-solid fa-list" style={{ marginRight: '8px' }}></i>
                     View All Complaints
                   </button>
