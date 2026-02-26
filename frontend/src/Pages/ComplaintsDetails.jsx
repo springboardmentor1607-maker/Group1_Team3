@@ -45,11 +45,11 @@ const ComplaintDetails = () => {
       <div style={{ maxWidth: "800px", margin: "auto" }}>
         {/* BACK BUTTON */}
         <button
-          onClick={() => navigate("/complaints")}
+          onClick={() => navigate("/complaints",{replace: true})}
           style={{
             marginBottom: "20px",
             padding: "8px 16px",
-            background: "#3b5bfd",
+            background: "#030b33",
             color: "white",
             border: "none",
             borderRadius: "8px",
