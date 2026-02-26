@@ -248,15 +248,15 @@ const ReportIssue = () => {
     setLoading(true);
     setUploadProgress(null);
 
-    // const data = new FormData();
-    // Object.keys(formData).forEach((key) => data.append(key, formData[key]));
+    const data = new FormData();
+    Object.keys(formData).forEach((key) => data.append(key, formData[key]));
 
-    // imageFiles.forEach((file) => {
-    //   data.append("images", file);
-    // });
+    imageFiles.forEach((file) => {
+      data.append("images", file);
+    });
 
-    // data.append("latitude", selectedLocation[1]);
-    // data.append("longitude", selectedLocation[0]);
+    data.append("latitude", selectedLocation[1]);
+    data.append("longitude", selectedLocation[0]);
    
 
 
@@ -279,16 +279,11 @@ const ReportIssue = () => {
 
     try {
       
-      const response = await API.post("/complaints/create",
-                    {
-                      ...formData,
-                      latitude: selectedLocation[1],
-                      longitude: selectedLocation[0],
-                    },
+      const response = await API.post("/complaints/create",data,
                     {
                       headers: {
                         Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json"
+                        // "Content-Type": "application/json"
                       }
                  })
 

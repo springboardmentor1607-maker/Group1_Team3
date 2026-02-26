@@ -1,4 +1,7 @@
+import cloudinary from "../config/cloudinary.js";
 import Complaint from "../models/complaint.model.js";
+import streamifier from 'streamifier'
+
 
 // Create a new complaint
 export const createComplaint = async (req, res) => {
@@ -14,6 +17,27 @@ export const createComplaint = async (req, res) => {
             latitude, 
             longitude 
         } = req.body;
+
+        //handling image data...
+
+        let imageUrls = [];
+        if(req.files && req.files.length > 0){
+            for(let file of req.files){
+                const uploadFromBuffer = () => new Promise((resolve,reject) => {
+                    const stream = cloudinary.uploader.upload_stream(
+                        {folder : "complaints"},
+                        (error, result) =>{
+                            if(result) resolve(result);
+                            else reject(error);
+                        }
+                    )
+                    streamifier.createReadStream(file.buffer).pipe(stream)
+                });
+
+                const result = await uploadFromBuffer();
+                imageUrls.push(result.secure_url);
+            }
+        }
 
         // Validate required fields
         if (!title || !description || !issueType) {
@@ -39,13 +63,13 @@ export const createComplaint = async (req, res) => {
             issueType,
             priority: priority || "medium",
             description,
-            photo: null, // Will be updated with cloud URL later
             landmark: landmark || "",
             location_coords: {
                 lat: latitude ? parseFloat(latitude) : null,
                 lng: longitude ? parseFloat(longitude) : null
             },
-            address: address || ""
+            address: address || "",
+            images : imageUrls
         });
 
         await newComplaint.save();
