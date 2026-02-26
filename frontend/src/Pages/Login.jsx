@@ -17,9 +17,12 @@ function Login() {
         email,
         password,
       });
+      console.log("Login Response:", response);
+      console.log("Full Login Response:", response.data);
 
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
+      console.log("Token after saving:", localStorage.getItem("token"));
       alert("Login Successful");
       navigate("/dashboard");
 

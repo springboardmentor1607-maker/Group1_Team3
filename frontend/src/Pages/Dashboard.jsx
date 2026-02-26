@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
 import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [complaints, setComplaints] = useState([]);
+    console.log("Complaints:", complaints);
+
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -14,6 +18,25 @@ const Dashboard = () => {
       navigate("/login");
     }
   }, [navigate]);
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res=await axios.get("http://localhost:5000/api/complaints/my-complaints", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("API Response:", res.data);
+        const sortedComplaints = res.data.complaints.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+        setComplaints(sortedComplaints);
+      } catch ( error) {
+        console.error("Error fetching complaints:", error);
+      }
+    };
+    fetchComplaints();
+  },[]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -215,7 +238,7 @@ const Dashboard = () => {
                   <div className="stat-icon" style={{ backgroundColor: 'rgba(198, 40, 40, 0.1)', color: 'var(--color-danger)' }}>
                     <i className="fa-solid fa-triangle-exclamation"></i>
                   </div>
-                  <div className="stat-value">4</div>
+                  <div className="stat-value">{complaints.length}</div>
                   <div className="stat-label">Total Issues</div>
                 </div>
 
@@ -223,7 +246,7 @@ const Dashboard = () => {
                   <div className="stat-icon" style={{ backgroundColor: 'rgba(2, 119, 189, 0.1)', color: 'var(--color-info)' }}>
                     <i className="fa-solid fa-clock"></i>
                   </div>
-                  <div className="stat-value">4</div>
+                  <div className="stat-value">{complaints.filter(c => c.status === "received").length}</div>
                   <div className="stat-label">Pending</div>
                 </div>
 
@@ -231,7 +254,7 @@ const Dashboard = () => {
                   <div className="stat-icon" style={{ backgroundColor: 'rgba(245, 127, 23, 0.1)', color: 'var(--color-warning)' }}>
                     <i className="fa-solid fa-gear"></i>
                   </div>
-                  <div className="stat-value">0</div>
+                  <div className="stat-value">{complaints.filter(c => c.status === "in_progress").length}</div>
                   <div className="stat-label">In Progress</div>
                 </div>
 
@@ -239,7 +262,7 @@ const Dashboard = () => {
                   <div className="stat-icon" style={{ backgroundColor: 'rgba(46, 125, 50, 0.1)', color: 'var(--color-success)' }}>
                     <i className="fa-regular fa-circle-check"></i>
                   </div>
-                  <div className="stat-value">0</div>
+                  <div className="stat-value">{complaints.filter(c => c.status === "resolved").length}</div>
                   <div className="stat-label">Resolved</div>
                 </div>
               </div>
@@ -252,24 +275,33 @@ const Dashboard = () => {
                   <h2 className="section-title">Recent Activity</h2>
                 </div>
                 <div className="activity-list">
-                  <div className="activity-item">
-                    <div className="activity-icon" style={{ backgroundColor: 'var(--color-success)' }}>
-                      <i className="fa-solid fa-check"></i>
-                    </div>
-                    <div className="activity-content">
-                      <h4>Pothole on Main Street resolved</h4>
-                      <div className="activity-time">2 hours ago</div>
-                    </div>
+                  {complaints.slice(0, 5).map((complaint) => (
+                     <div className="activity-item" key={complaint._id}>
+                      <div
+                      className="activity-icon"
+                      style={{
+                        backgroundColor:
+                        complaint.status === "resolved"
+                        ? "var(--color-success)"
+                        : "var(--color-info)",
+                      }}
+                    >
+                      <i
+                      className={
+                        complaint.status === "resolved"
+                        ? "fa-solid fa-check"
+                        : "fa-solid fa-plus"
+                      }
+                    ></i>
                   </div>
-                  <div className="activity-item">
-                    <div className="activity-icon" style={{ backgroundColor: 'var(--color-info)' }}>
-                      <i className="fa-solid fa-plus"></i>
+                  <div className="activity-content">
+                    <h4>{complaint.title}</h4>
+                    <div className="activity-time">
+                       {new Date(complaint.created_at).toLocaleString()}
+                       </div>
+                      </div>
                     </div>
-                    <div className="activity-content">
-                      <h4>New streetlight issue reported</h4>
-                      <div className="activity-time">4 hours ago</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </section>
 
