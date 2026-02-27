@@ -1,34 +1,55 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Map from "ol/Map";
+import View from "ol/View";
+import TileLayer from "ol/layer/Tile";
+import OSM from "ol/source/OSM";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
+import { fromLonLat } from "ol/proj";
+import { Icon, Style } from "ol/style";
 import axios from "axios";
+
+import "./ComplaintDetails.css";
 
 const ComplaintDetails = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [complaint, setComplaint] = useState(null);
   const [zoomImage, setZoomImage] = useState(null);
 
+  /* ------------------ Dummy Status Update (Volunteer) ------------------ */
+  const handleStatusChange = (newStatus) => {
+    setComplaint((prev) => ({
+      ...prev,
+      status: newStatus,
+    }));
+  };
+
+  /* ------------------ Admin Assign ------------------ */
   const handleAssign = async (volunteerId) => {
     try {
       const token = localStorage.getItem("token");
-  
+
       await axios.put(
         `http://localhost:5000/api/admin/assign/${id}`,
         { volunteerId },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       alert("Volunteer Assigned");
     } catch (error) {
       console.error(error);
     }
   };
 
+  /* ------------------ Fetch Complaint ------------------ */
   useEffect(() => {
     const fetchComplaint = async () => {
       try {
@@ -37,14 +58,13 @@ const ComplaintDetails = () => {
         const res = await axios.get(
           `http://localhost:5000/api/complaints/${id}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
         const data = res.data.complaint || res.data;
         setComplaint(data);
+
       } catch (err) {
         console.error(err);
       }
@@ -53,138 +73,162 @@ const ComplaintDetails = () => {
     fetchComplaint();
   }, [id]);
 
-  if (!complaint) return <p style={{ padding: "40px" }}>Loading...</p>;
+
+  useEffect(() => {
+    if (!complaint?.location_coords?.lng || !complaint?.location_coords?.lat)
+      return;
+  
+    const lon = parseFloat(complaint.location_coords.lng);
+    const lat = parseFloat(complaint.location_coords.lat);
+  
+    const mapTarget = document.getElementById("complaintMap");
+    if (!mapTarget) return;
+  
+    const marker = new Feature({
+      geometry: new Point(fromLonLat([lon, lat])),
+    });
+  
+    marker.setStyle(
+      new Style({
+        image: new Icon({
+          src: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+          scale: 0.09,
+          anchor: [0.5, 1],
+        }),
+      })
+    );
+  
+    const vectorLayer = new VectorLayer({
+      source: new VectorSource({
+        features: [marker],
+      }),
+    });
+  
+    const map = new Map({
+      target: mapTarget,
+      layers: [
+        new TileLayer({ source: new OSM() }),
+        vectorLayer,
+      ],
+      view: new View({
+        center: fromLonLat([lon, lat]),
+        zoom: 15,
+      }),
+    });
+  
+    return () => {
+      map.setTarget(null);
+    };
+  }, [complaint]);
+
+  if (!complaint) return <div className="cd-loading">Loading...</div>;
+
+  const handleBack = () => {
+    if (user?.role === "admin") navigate("/admin-dashboard");
+    else if (user?.role === "volunteer") navigate("/volunteer-dashboard");
+    else navigate("/complaints");
+  };
 
   return (
-    <div
-      style={{
-        padding: "40px",
-        background: "linear-gradient(to right, #eef2f3, #dfe9f3)",
-        minHeight: "100vh",
-      }}
-    >
-      <div style={{ maxWidth: "800px", margin: "auto" }}>
-        {/* BACK BUTTON */}
-        <button
-          onClick={() =>{if (user.role === "admin") {
-            navigate("/admin-dashboard");
-          } else {
-            navigate("/complaints");
-          }}}
-          style={{
-            marginBottom: "20px",
-            padding: "8px 16px",
-            background: "#030b33",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
-        >
+    <div className="cd-container">
+      <div className="cd-wrapper">
+
+        <button className="cd-back" onClick={handleBack}>
           ← Back
         </button>
 
-        <div
-          style={{
-            background: "white",
-            padding: "30px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-          }}
-        >
-          <h2>{complaint.title}</h2>
+        <div className="cd-layout">
+          <div className="cd-left">
+          <div className="cd-card">
+            <h2 className="cd-title">{complaint.title}</h2>
 
-          <p style={{ marginTop: "8px", color: "#555" }}>
-            <strong>Reported On:</strong>{" "}
-            {complaint.created_at
-             ? new Date(complaint.created_at).toLocaleString()
-             : "N/A"}
-        </p>
+            <div className="cd-meta">
+              <span>
+                Reported:{" "}
+                {complaint.created_at
+                  ? new Date(complaint.created_at).toLocaleString()
+                  : "N/A"}
+              </span>
 
-        <p style={{ marginTop: "5px", color: "#777", fontSize: "14px" }}>
-            <strong>Last Updated:</strong>{" "}
-            {complaint.updated_at
-            ? new Date(complaint.updated_at).toLocaleString()
-            : "N/A"}
-        </p>
-
-         
-
-          {/* IMAGE */}
-          {complaint.images && complaint.images.length > 0 ? (
-            <>
-              <img
-                src={complaint.images[0]}
-                alt="Complaint"
-                style={{
-                  width: "350px",
-                  height: "250px",
-                  objectFit: "cover",
-                  borderRadius: "12px",
-                  cursor: "pointer",
-                  display: "block",
-                  margin: "20px auto",
-                  
-                }}
-                onClick={() => setZoomImage(complaint.images[0])}
-              />
-
-              {zoomImage && (
-                <div
-                  onClick={() => setZoomImage(null)}
-                  style={{
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    background: "rgba(0,0,0,0.85)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <img
-                    src={zoomImage}
-                    alt="Zoom"
-                    style={{
-                      maxWidth: "90%",
-                      maxHeight: "90%",
-                      borderRadius: "12px",
-                    }}
-                  />
-                </div>
-              )}
-            </>
-          ) : (
-            <p style={{ marginTop: "20px", color: "gray" }}>
-              No image uploaded.
-            </p>
-          )}
-           <p style={{ marginTop: "15px" }}>
-            <strong>Description:</strong> {complaint.description}
-          </p>
-           <p style={{ marginTop: "15px" }}>
-            <strong>Address:</strong> {complaint.address}
-          </p>
-
-          {user?.role === "admin" && complaint.status === "received" && (
-            <div style={{ marginTop: "30px" }}>
-              <h3>Assign Volunteer</h3>
-
-              <select
-                style={{ padding: "8px", marginTop: "10px" }}
-                onChange={(e) => handleAssign(e.target.value)}
-              >
-                <option value="">Select Volunteer</option>
-                <option value="v1">Rahul Sharma</option>
-                <option value="v2">Anjali Verma</option>
-                <option value="v3">Mohit Singh</option>
-              </select>
+              <span className={`cd-status ${complaint.status}`}>
+                {complaint.status}
+              </span>
             </div>
-          )}
+
+
+
+            {/* Image Section */}
+            {complaint.images?.length > 0 && (
+              <>
+                <img
+                  src={complaint.images[0]}
+                  alt="Complaint"
+                  className="cd-image"
+                  onClick={() => setZoomImage(complaint.images[0])}
+                />
+
+                {zoomImage && (
+                  <div
+                    className="cd-overlay"
+                    onClick={() => setZoomImage(null)}
+                  >
+                    <img src={zoomImage} alt="Zoom" />
+                  </div>
+                )}
+              </>
+            )}
+
+            <p className="cd-address">
+              <strong>Address:</strong> {complaint.address || "N/A"}
+            </p>
+
+            <p className="cd-description"> <strong>Description:</strong> {complaint.description}</p>
+
+            
+
+            {/* ---------------- Admin Section ---------------- */}
+            {user?.role === "admin" && complaint.status === "received" && (
+              <div className="cd-section">
+                <h3>Assign Volunteer</h3>
+                <select
+                  onChange={(e) => handleAssign(e.target.value)}
+                >
+                  <option value="">Select Volunteer</option>
+                  <option value="v1">Rahul Sharma</option>
+                  <option value="v2">Anjali Verma</option>
+                  <option value="v3">Mohit Singh</option>
+                </select>
+              </div>
+            )}
+
+            {/* ---------------- Volunteer Section ---------------- */}
+            {user?.role === "volunteer" && (
+              <div className="cd-section">
+                <h3>Update Status</h3>
+
+                <select
+                  value={complaint.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                >
+                  <option value="received">Received</option>
+                  <option value="in progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+            )}
+
+          </div>
+
+
+          </div>
+
+          <div className="cd-map-container">
+            <div id="complaintMap" className="cd-map"></div>
+          </div>
 
         </div>
+
+        
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import ViewComplaints from "./Pages/ViewComplaints";
 import ComplaintDetails from "./Pages/ComplaintsDetails";
 import AdminDashboard from "./Pages/AdminDashboard.jsx";
 import { Navigate } from "react-router-dom";
+import VolunteerDashboard from "./Pages/VolunteerDashboard.jsx";
 
 
 
@@ -90,6 +91,10 @@ function AppContent() {
 
         <Route path="/admin-dashboard" element= {<ProtectedRoute>
           <AdminDashboard/>
+          </ProtectedRoute>}/>
+
+          <Route path="/volunteer-dashboard" element = {<ProtectedRoute>
+            <VolunteerDashboard/>
           </ProtectedRoute>}/>
 
           <Route path="*" element={<Navigate to="/login" />} />
