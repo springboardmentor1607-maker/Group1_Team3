@@ -19,7 +19,7 @@ router.get("/my-complaints", verifyToken, getUserComplaints);
 router.get("/:id", verifyToken, getComplaintById);
 
 // Admin routes
-router.get("/", verifyToken, authorizeRoles("admin"), getAllComplaints);
+router.get("/", verifyToken, authorizeRoles("admin","volunteer"), getAllComplaints);
 router.patch("/:id/status", verifyToken, authorizeRoles("admin"), updateComplaintStatus);
 router.delete("/:id", verifyToken, authorizeRoles("admin"), deleteComplaint);
 
