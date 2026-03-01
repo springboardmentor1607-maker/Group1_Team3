@@ -1,24 +1,95 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClipboardList, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import ComplaintCard from "@/components/ComplaintCard";
 import VolunteerListModal from "@/components/VolunteerListModal";
-import { complaints as initialComplaints, volunteers } from "@/data/mockData";
+
+import API from "@/api/axios";
 
 
 const ManageComplaint = () => {
-  const [complaints, setComplaints] = useState(initialComplaints);
+  const [complaints, setComplaints] = useState([]);
+  const [volunteers,setVolunteers] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [filterPriority, setFilterPriority] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [volunteersLoading,setVolunteersLoading] = useState(false);
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchComplaints = async () =>{
+      try {
+        
+        const response = await API.get("/admin/complaints",{
+          headers :{
+            Authorization : `Bearer ${token}`
+          }
+        });
+        const formatted = response.data.complaints.map((item,index)=>({
+          ...item,
+          id :item. _id,
+          displayId : `CMP-${String(index+1).padStart(3,"0")}`
+        }));
+
+
+        setComplaints(formatted);
+      } catch (error) {
+        console.error("Error fetching complaints : ",error);
+        toast.error("failed to load complaints");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchComplaints();
+  },[])
+
+  useEffect(()=>{
+    if(!selectedComplaint) return;
+
+    const fetchVolunteers = async () => {
+      try {
+          setVolunteersLoading(true);
+        const response = await API.get("/admin/volunteers",{
+          headers : {
+            Authorization : `Bearer ${token}`
+          }
+        })
+
+        const formatted = response.data.volunteers.map((item) => ({
+          id : item._id,
+          name: item.name,
+          email : item.email,
+          mobile: item.mobile,
+          location : item.location ?? "N/A",
+          avatar : item.name?.charAt(0).toUpperCase()
+
+        }))
+
+        setVolunteers(formatted);
+
+      } catch (error) {
+        console.error("Error fetching details : ",error);
+        toast.error("Failed to load volunteers")
+        
+      } finally{
+        setVolunteersLoading(false);
+      }
+    }
+    fetchVolunteers();
+  },[selectedComplaint])
+
+
+
+
 
   const filtered = complaints.filter((c) => {
     const matchSearch =
       c.title.toLowerCase().includes(search.toLowerCase()) ||
       c.address.toLowerCase().includes(search.toLowerCase()) ||
-      c.id.toLowerCase().includes(search.toLowerCase());
+      c.displayId.toLowerCase().includes(search.toLowerCase());
     const matchPriority = filterPriority === "all" || c.priority === filterPriority;
     return matchSearch && matchPriority;
   });
@@ -36,9 +107,16 @@ const ManageComplaint = () => {
   };
 
   const priorities = ["all", "high", "medium", "low"];
-
+    if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-muted-foreground">Loading complaints...</p>
+        </div>
+      );
+    }
   return (
     <div className="min-h-screen bg-background">
+      
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="max-w-5xl mx-auto px-4 py-4">
@@ -84,7 +162,9 @@ const ManageComplaint = () => {
       </header>
 
       {/* Complaint List */}
+
       <main className="max-w-5xl mx-auto px-4 py-6">
+      
         {filtered.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}

@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
-
+ 
 const issueTypeLabels = {
   water_leak: "Water Leak",
   electrical: "Electrical",
@@ -50,7 +50,7 @@ const ComplaintCard = ({ complaint, onAssign }) => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-mono text-muted-foreground">
-                  {complaint.id}
+                  {complaint.displayId}
                 </span>
                 <Badge
                   variant="outline"
