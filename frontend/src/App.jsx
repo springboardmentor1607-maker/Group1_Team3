@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar";
 import Signup from "./Pages/Signup";
 import Login from "./Pages/Login";
 import ForgotPassword from "./Pages/ForgotPassword";
-import ProtectedRoute from "./component/ProtectedRoute.js";
+import ProtectedRoute from "./component/ProtectedRoute.jsx";
 import Dashboard from "./Pages/Dashboard";
 import Profile from "./Pages/profile";
 import ReportIssue from "./Pages/ReportIssue.jsx";
@@ -13,6 +13,7 @@ import ComplaintDetails from "./Pages/ComplaintsDetails";
 import AdminDashboard from "./Pages/AdminDashboard.jsx";
 import { Navigate } from "react-router-dom";
 import VolunteerDashboard from "./Pages/VolunteerDashboard.jsx";
+import ManageComplaint from "./Pages/ManageComplaint";
 
 
 
@@ -20,7 +21,8 @@ function AppContent() {
   const location = useLocation();
   const hideNavbarRoutes = [
     "/dashboard",
-    "/admin-dashboard"
+    "/admin-dashboard",
+    "/manage-complaints"
   ];
 
   const hideNavbar = hideNavbarRoutes.some(route =>
@@ -28,12 +30,15 @@ function AppContent() {
   );
   return (
     <>
+       
       {!hideNavbar && <Navbar />}
 
       <Routes>
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        <Route path="/manage-complaints" element = {<ManageComplaint/>} />
         
         
         <Route path="/dashboard" element = {

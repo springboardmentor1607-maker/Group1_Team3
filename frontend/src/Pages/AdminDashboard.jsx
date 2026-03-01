@@ -106,7 +106,7 @@ const AdminDashboard = () => {
           </div>
           <div 
             className={`nav-item ${activeSection === "complaints" ? "active" : ""}`}
-            onClick={() => setActiveSection("complaints")}
+            onClick={() => navigate("/manage-complaints")}
           >
             📝 Manage Complaints
           </div>
