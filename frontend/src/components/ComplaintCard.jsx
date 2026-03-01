@@ -35,6 +35,7 @@ const priorityColors = {
 
 const ComplaintCard = ({ complaint, onAssign }) => {
   const [expanded, setExpanded] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   return (
     <motion.div
@@ -119,6 +120,7 @@ const ComplaintCard = ({ complaint, onAssign }) => {
                       <div
                         key={i}
                         className="w-32 h-24 rounded-lg overflow-hidden border border-border bg-muted"
+                        onClick={() => setPreviewImage(img)}
                       >
                         <img
                           src={img}
@@ -168,12 +170,36 @@ const ComplaintCard = ({ complaint, onAssign }) => {
               </Button>
             ) : (
               <span className="text-xs text-muted-foreground">
-                Assigned to volunteer
+                Assigned to {complaint.assigned_to?.name || "Volunteer"}
               </span>
             )}
           </div>
         </div>
       </Card>
+      {previewImage && (
+        
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => setPreviewImage(null)}
+        >
+          <button
+            className="absolute top-5 right-5 text-white text-2xl"
+            onClick={() => setPreviewImage(null)}
+          >
+            ✕
+          </button>
+          <div
+            className="max-w-4xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="w-full max-h-[80vh] object-contain rounded-lg shadow-xl"
+            />
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };

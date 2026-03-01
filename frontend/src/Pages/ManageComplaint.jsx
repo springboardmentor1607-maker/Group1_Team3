@@ -94,16 +94,34 @@ const ManageComplaint = () => {
     return matchSearch && matchPriority;
   });
 
-  const handleAssignConfirm = (complaint, volunteer) => {
-    setComplaints((prev) =>
-      prev.map((c) =>
-        c.id === complaint.id
-          ? { ...c, status: "assigned", assignedTo: volunteer.id, updated_at: new Date().toISOString() }
-          : c
-      )
-    );
-    setSelectedComplaint(null);
-    toast.success(`Complaint "${complaint.title}" assigned to ${volunteer.name}`);
+  const handleAssignConfirm = async (complaint, volunteer) => {
+    try {
+
+      const response = await API.put(`/admin/${complaint.id}/assign`,{
+        volunteerId : volunteer.id,
+      },{
+        headers : {
+          Authorization : `Bearer ${token}`,
+        },
+      })
+
+      const updatedComplaint = response.data.complaint;
+
+      setComplaints((prev) =>
+        prev.map((c) =>
+          c.id === updatedComplaint._id
+            ? { ...c, status: updatedComplaint.status, assigned_to: updatedComplaint.assigned_to, updated_at: updatedComplaint.updated_at }
+            : c
+        )
+      );
+      setSelectedComplaint(null);
+      toast.success(`Assigned to ${updatedComplaint.assigned_to.name}`);
+  
+        } catch (error) {
+          console.error("Assignment error:", error);
+          toast.error("Failed to assign complaint");
+      
+        }
   };
 
   const priorities = ["all", "high", "medium", "low"];

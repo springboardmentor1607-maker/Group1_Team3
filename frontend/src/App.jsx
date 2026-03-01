@@ -38,7 +38,7 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        <Route path="/manage-complaints" element = {<ManageComplaint/>} />
+        
         
         
         <Route path="/dashboard" element = {
@@ -73,6 +73,8 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/manage-complaints" element = {<ProtectedRoute><ManageComplaint/></ProtectedRoute>} />
 
         {/* ✅ NEW ROUTES ADDED BELOW */}
 

@@ -72,7 +72,7 @@ const AdminDashboard = () => {
     navigate("/login");
   };
 
-  const reported = complaints.filter(c => c.status === "reported").length;
+  const received = complaints.filter(c => c.status === "received").length;
   const assigned = complaints.filter(c => c.status === "assigned").length;
   const inProgress = complaints.filter(c => c.status === "in_progress").length;
   const resolved = complaints.filter(c => c.status === "resolved").length;
@@ -149,8 +149,8 @@ const AdminDashboard = () => {
                 <p>Total Complaints</p>
               </div>
               <div className="stat-card">
-                <h3>{reported}</h3>
-                <p>Reported</p>
+                <h3>{received}</h3>
+                <p>Received</p>
               </div>
               <div className="stat-card">
                 <h3>{assigned}</h3>
