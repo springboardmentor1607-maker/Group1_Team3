@@ -96,6 +96,7 @@ function AppContent() {
           }
         />
 
+
         <Route path="/admin-dashboard" element= {<ProtectedRoute>
           <AdminDashboard/>
           </ProtectedRoute>}/>
@@ -103,6 +104,9 @@ function AppContent() {
           <Route path="/volunteer-dashboard" element = {<ProtectedRoute>
             <VolunteerDashboard/>
           </ProtectedRoute>}/>
+
+          <Route path="/manage-complaints" element = {<ProtectedRoute><ManageComplaint/></ProtectedRoute>} />
+
 
           <Route path="*" element={<Navigate to="/login" />} />
       </Routes>

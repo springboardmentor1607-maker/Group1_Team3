@@ -1,228 +1,259 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ClipboardList, Search, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import ComplaintCard from "@/components/ComplaintCard";
 import VolunteerListModal from "@/components/VolunteerListModal";
-
 import API from "@/api/axios";
 
-
 const ManageComplaint = () => {
+  const navigate = useNavigate();
+
   const [complaints, setComplaints] = useState([]);
-  const [volunteers,setVolunteers] = useState([]);
+  const [volunteers, setVolunteers] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [assignOpen, setAssignOpen] = useState(false);
   const [filterPriority, setFilterPriority] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [volunteersLoading,setVolunteersLoading] = useState(false);
+
   const token = localStorage.getItem("token");
 
+  // Fetch complaints
   useEffect(() => {
-    const fetchComplaints = async () =>{
+    const fetchComplaints = async () => {
       try {
-        
-        const response = await API.get("/admin/complaints",{
-          headers :{
-            Authorization : `Bearer ${token}`
-          }
+        const response = await API.get("/admin/complaints", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        const formatted = response.data.complaints.map((item,index)=>({
-          ...item,
-          id :item. _id,
-          displayId : `CMP-${String(index+1).padStart(3,"0")}`
-        }));
 
+        const formatted = response.data.complaints.map((item, index) => ({
+          ...item,
+          id: item._id,
+          displayId: `CMP-${String(index + 1).padStart(3, "0")}`,
+        }));
 
         setComplaints(formatted);
       } catch (error) {
-        console.error("Error fetching complaints : ",error);
-        toast.error("failed to load complaints");
+        toast.error("Failed to load complaints");
       } finally {
         setLoading(false);
       }
-    }
-    fetchComplaints();
-  },[])
+    };
 
-  useEffect(()=>{
-    if(!selectedComplaint) return;
+    fetchComplaints();
+  }, []);
+
+  // Fetch volunteers when complaint selected
+  useEffect(() => {
+    if (!selectedComplaint) return;
 
     const fetchVolunteers = async () => {
       try {
-          setVolunteersLoading(true);
-        const response = await API.get("/admin/volunteers",{
-          headers : {
-            Authorization : `Bearer ${token}`
-          }
-        })
+        const response = await API.get("/admin/volunteers", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const formatted = response.data.volunteers.map((item) => ({
-          id : item._id,
+          id: item._id,
           name: item.name,
-          email : item.email,
+          email: item.email,
           mobile: item.mobile,
-          location : item.location ?? "N/A",
-          avatar : item.name?.charAt(0).toUpperCase()
-
-        }))
+          location: item.location ?? "N/A",
+        }));
 
         setVolunteers(formatted);
-
       } catch (error) {
-        console.error("Error fetching details : ",error);
-        toast.error("Failed to load volunteers")
-        
-      } finally{
-        setVolunteersLoading(false);
+        toast.error("Failed to load volunteers");
       }
-    }
+    };
+
     fetchVolunteers();
-  },[selectedComplaint])
+  }, [selectedComplaint]);
 
-
-
-
-
+  // Filter logic
   const filtered = complaints.filter((c) => {
     const matchSearch =
-      c.title.toLowerCase().includes(search.toLowerCase()) ||
-      c.address.toLowerCase().includes(search.toLowerCase()) ||
-      c.displayId.toLowerCase().includes(search.toLowerCase());
-    const matchPriority = filterPriority === "all" || c.priority === filterPriority;
+      c.title?.toLowerCase().includes(search.toLowerCase()) ||
+      c.address?.toLowerCase().includes(search.toLowerCase()) ||
+      c.displayId?.toLowerCase().includes(search.toLowerCase());
+
+    const matchPriority =
+      filterPriority === "all" || c.priority === filterPriority;
+
     return matchSearch && matchPriority;
   });
 
+  // Assign volunteer
   const handleAssignConfirm = async (complaint, volunteer) => {
     try {
-
-      const response = await API.put(`/admin/${complaint.id}/assign`,{
-        volunteerId : volunteer.id,
-      },{
-        headers : {
-          Authorization : `Bearer ${token}`,
-        },
-      })
+      const response = await API.put(
+        `/admin/${complaint.id}/assign`,
+        { volunteerId: volunteer.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       const updatedComplaint = response.data.complaint;
 
+      // ✅ UPDATED PART (added assigned_to update)
       setComplaints((prev) =>
         prev.map((c) =>
           c.id === updatedComplaint._id
-            ? { ...c, status: updatedComplaint.status, assigned_to: updatedComplaint.assigned_to, updated_at: updatedComplaint.updated_at }
+            ? {
+                ...c,
+                status: updatedComplaint.status,
+                assigned_to: updatedComplaint.assigned_to,
+              }
             : c
         )
       );
-      setSelectedComplaint(null);
+
+      // ✅ Update selected complaint instantly
+      setSelectedComplaint((prev) => ({
+        ...prev,
+        status: updatedComplaint.status,
+        assigned_to: updatedComplaint.assigned_to,
+      }));
+
       toast.success(`Assigned to ${updatedComplaint.assigned_to.name}`);
-  
-        } catch (error) {
-          console.error("Assignment error:", error);
-          toast.error("Failed to assign complaint");
-      
-        }
+    } catch (error) {
+      toast.error("Failed to assign complaint");
+    }
   };
 
-  const priorities = ["all", "high", "medium", "low"];
-    if (loading) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <p className="text-muted-foreground">Loading complaints...</p>
-        </div>
-      );
-    }
   return (
-    <div className="min-h-screen bg-background">
-      
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-lg border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <ClipboardList className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="font-heading text-xl font-bold text-foreground">Manage Complaints</h1>
-              <p className="text-xs text-muted-foreground">{complaints.length} total complaints</p>
-            </div>
-          </div>
+    <div className="h-screen relative bg-[#f8fafc] overflow-hidden">
 
-          {/* Search & Filter */}
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by title, address, or ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 bg-muted/50 border-border"
-              />
-            </div>
-            <div className="flex items-center gap-1 bg-muted/50 rounded-lg border border-border p-1">
-              <Filter className="w-4 h-4 text-muted-foreground ml-2" />
-              {priorities.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setFilterPriority(p)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize ${
-                    filterPriority === p
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Background Shapes */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-purple-200 rounded-full blur-3xl opacity-40" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-200 rounded-full blur-3xl opacity-40" />
 
-      {/* Complaint List */}
+      <div className="relative h-full flex">
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
-      
-        {filtered.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <ClipboardList className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground font-medium">No complaints found</p>
-            <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
-          </motion.div>
-        ) : (
-          <div className="grid gap-4">
-            {filtered.map((complaint, i) => (
-              <motion.div
+        {/* LEFT PANEL */}
+        <div className="w-[34%] p-12 overflow-y-auto">
+
+          <h1 className="text-3xl font-semibold text-gray-800 mb-12 tracking-tight">
+            Complaint Workspace
+          </h1>
+
+          <div className="space-y-6">
+            {filtered.map((complaint) => (
+              <div
                 key={complaint.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
+                onClick={() => setSelectedComplaint(complaint)}
+                className={`p-6 rounded-2xl backdrop-blur-lg transition-all cursor-pointer ${
+                  selectedComplaint?.id === complaint.id
+                    ? "bg-white shadow-2xl scale-[1.02]"
+                    : "bg-white/70 hover:bg-white hover:shadow-lg"
+                }`}
               >
-                <ComplaintCard
-                  complaint={complaint}
-                  onAssign={setSelectedComplaint}
-                />
-              </motion.div>
+                <div className="flex justify-between items-center">
+
+                  <h2 className="text-lg font-medium text-gray-800">
+                    {complaint.title}
+                  </h2>
+
+                  <div
+                    className={`px-3 py-1 text-xs rounded-full ${
+                      complaint.priority === "high"
+                        ? "bg-red-100 text-red-600"
+                        : complaint.priority === "medium"
+                        ? "bg-yellow-100 text-yellow-600"
+                        : "bg-green-100 text-green-600"
+                    }`}
+                  >
+                    {complaint.priority}
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-500 mt-2">
+                  {complaint.address}
+                </p>
+              </div>
             ))}
           </div>
-        )}
-      </main>
+        </div>
 
-      {/* Volunteer Modal */}
+        {/* RIGHT PANEL */}
+        <div className="flex-1 p-20 overflow-y-auto">
+
+          {!selectedComplaint ? (
+            <div className="h-full flex items-center justify-center text-gray-400 text-lg">
+              Choose a complaint to inspect details
+            </div>
+          ) : (
+            <div className="relative bg-white rounded-[50px] shadow-2xl p-16 max-w-5xl mx-auto">
+
+              <div className="absolute top-0 left-0 right-0 h-2 rounded-t-[50px] bg-gradient-to-r from-purple-400 to-blue-400" />
+
+              <h2 className="text-4xl font-semibold text-gray-800 mb-8">
+                {selectedComplaint.title}
+              </h2>
+
+              <div className="flex gap-10 text-sm text-gray-500 mb-10">
+                <span>ID: {selectedComplaint.displayId}</span>
+                <span>Status: {selectedComplaint.status}</span>
+                <span>Priority: {selectedComplaint.priority}</span>
+              </div>
+
+              <p className="text-gray-600 leading-relaxed text-lg">
+                {selectedComplaint.description}
+              </p>
+
+              {selectedComplaint.image && (
+                <img
+                  src={selectedComplaint.image}
+                  alt="Complaint"
+                  className="mt-12 rounded-3xl max-h-[420px] object-cover shadow-lg"
+                />
+              )}
+
+              {/* ✅ UPDATED BUTTON LOGIC */}
+              <div className="mt-16">
+
+                {selectedComplaint.assigned_to ? (
+
+                  <div className="px-10 py-4 rounded-2xl bg-green-100 text-green-700 font-medium shadow">
+                    Assigned to: {selectedComplaint.assigned_to.name}
+                  </div>
+
+                ) : (
+
+                  <button
+                    onClick={() => setAssignOpen(true)}
+                    className="px-10 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium shadow-lg hover:scale-[1.02] transition-all"
+                  >
+                    Assign Volunteer
+                  </button>
+
+                )}
+
+              </div>
+
+            </div>
+          )}
+
+        </div>
+
+      </div>
+
+      {/* Assign Modal */}
       <AnimatePresence>
-        {selectedComplaint && (
+        {assignOpen && selectedComplaint && (
           <VolunteerListModal
             complaint={selectedComplaint}
             volunteers={volunteers}
-            onClose={() => setSelectedComplaint(null)}
-            onAssignConfirm={handleAssignConfirm}
+            onClose={() => setAssignOpen(false)}
+            onAssignConfirm={(complaint, volunteer) => {
+              handleAssignConfirm(complaint, volunteer);
+              setAssignOpen(false);
+            }}
           />
         )}
       </AnimatePresence>
+
     </div>
   );
 };
