@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Signup from "./Pages/Signup";
 import Login from "./Pages/Login";
@@ -14,6 +14,9 @@ import AdminDashboard from "./Pages/AdminDashboard.jsx";
 import { Navigate } from "react-router-dom";
 import VolunteerDashboard from "./Pages/VolunteerDashboard.jsx";
 import ManageComplaint from "./Pages/ManageComplaint";
+import VolunteerLayout from "./components/volunteer/VolunteerLayout";
+import DashboardOverview from "./Pages/volunteer/DashboardOverview";
+import MyComplaints from "./Pages/volunteer/MyComplaints";
 
 
 
@@ -22,7 +25,8 @@ function AppContent() {
   const hideNavbarRoutes = [
     "/dashboard",
     "/admin-dashboard",
-    "/manage-complaints"
+    "/manage-complaints",
+    "/volunteer"
   ];
 
   const hideNavbar = hideNavbarRoutes.some(route =>
@@ -107,6 +111,17 @@ function AppContent() {
 
           <Route path="/manage-complaints" element = {<ProtectedRoute><ManageComplaint/></ProtectedRoute>} />
 
+          
+            <Route path="/volunteer" element ={<ProtectedRoute><VolunteerLayout/></ProtectedRoute>}>
+              <Route index element = {<DashboardOverview/>}/>
+              <Route path="complaints" element = {<MyComplaints/>}/>
+              <Route path="in-progress" element = {<MyComplaints statusFilter="in_progress"/>}/>
+              <Route path="resolved" element = {<MyComplaints statusFilter={"resolved"}/>}/>
+            </Route>
+          
+
+          
+
 
           <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
@@ -118,9 +133,9 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
+    
       <AppContent />
-    </Router>
+    
   );
 }
 

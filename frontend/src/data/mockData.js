@@ -32,6 +32,7 @@ export const complaints = [
       status: "received",
       created_at: "2026-02-26T10:30:00.000+00:00",
       updated_at: "2026-02-26T10:30:00.000+00:00",
+      assignedTo: "vol-1",
     },
     {
       id: "CMP-003",
