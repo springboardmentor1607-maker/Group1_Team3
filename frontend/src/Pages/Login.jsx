@@ -27,7 +27,7 @@ function Login() {
       if (user.role === "admin") {
         navigate("/admin-dashboard");
       } else if (user.role === "volunteer") {
-        navigate("/volunteer-dashboard");
+        navigate("/volunteer");
       } else {
         navigate("/dashboard"); // normal user
       }
