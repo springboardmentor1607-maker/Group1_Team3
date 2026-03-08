@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ClipboardList,
@@ -25,12 +25,10 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { complaints as allComplaints, volunteers } from "@/data/mockData";
 import { format } from "date-fns";
 import ComplaintDetailModal from "@/components/volunteer/ComplaintDetailModal";
 import { toast } from "sonner";
-
-const currentVolunteer = volunteers[0];
+import { getVolunteerComplaints, updateComplaintStatus } from "@/services/volunteerServices";
 
 const issueTypeLabels = {
   water_leak: "Water Leak",
@@ -61,11 +59,33 @@ const PIE_COLORS = [
 ];
 
 export default function DashboardOverview() {
-  const [complaints, setComplaints] = useState(
-    allComplaints.filter((c) => c.assignedTo === currentVolunteer.id)
-  );
-
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
+
+  // Fetch complaints from backend
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log("Fetching volunteer complaints for dashboard");
+        const response = await getVolunteerComplaints();
+        console.log("Dashboard complaints response:", response);
+        setComplaints(response.complaints || []);
+      } catch (error) {
+        console.error("Error fetching complaints:", error);
+        const errorMsg = error.response?.data?.message || error.message || "Failed to load complaints";
+        setError(errorMsg);
+        toast.error(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchComplaints();
+  }, []);
 
   const stats = useMemo(() => {
     const total = complaints.length;
@@ -109,19 +129,49 @@ export default function DashboardOverview() {
     resolved: { label: "Resolved", color: PIE_COLORS[3] },
   };
 
-  const handleStatusUpdate = (id, status, remarks) => {
-    setComplaints((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, status, updated_at: new Date().toISOString() }
-          : c
-      )
-    );
+  const handleStatusUpdate = async (id, status) => {
+    try {
+      await updateComplaintStatus(id, status);
+      
+      setComplaints((prev) =>
+        prev.map((c) =>
+          c._id === id
+            ? { ...c, status, updated_at: new Date().toISOString() }
+            : c
+        )
+      );
 
-    toast.success(
-      `Complaint status updated to ${status.replace("_", " ")}`
-    );
+      toast.success(
+        `Complaint status updated to ${status.replace("_", " ")}`
+      );
+      setSelectedComplaint(null);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error(error.response?.data?.message || "Failed to update status");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="text-muted-foreground">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <div className="text-red-600 mb-4">⚠️ Error: {error}</div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   const statCards = [
     {
@@ -248,13 +298,13 @@ export default function DashboardOverview() {
             ) : (
               recentComplaints.map((c) => (
                 <div
-                  key={c.id}
+                  key={c._id}
                   onClick={() => setSelectedComplaint(c)}
                   className="flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
                 >
                   <div className="flex-1 min-w-0 mr-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-mono text-muted-foreground">{c.id}</span>
+                      <span className="text-[10px] font-mono text-muted-foreground">{c._id}</span>
                       <Badge variant="outline" className={`text-[10px] ${priorityColors[c.priority]}`}>
                         {c.priority}
                       </Badge>

@@ -66,8 +66,8 @@ export default function ComplaintDetailModal({
   const currentIdx = statusOrder.indexOf(complaint.status);
 
   const handleSubmit = () => {
-    onStatusUpdate(complaint.id, newStatus, remarks);
-    onClose();
+    // Backend only accepts status, not remarks
+    onStatusUpdate(complaint._id, newStatus);
   };
 
   return (
@@ -90,7 +90,7 @@ export default function ComplaintDetailModal({
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-mono text-muted-foreground">
-                {complaint.id}
+                {complaint._id}
               </span>
               <Badge variant="outline" className={priorityColors[complaint.priority]}>
                 <AlertTriangle className="w-3 h-3 mr-1" />
@@ -152,14 +152,14 @@ export default function ComplaintDetailModal({
                 Coordinates
               </p>
               <p className="text-sm font-medium">
-                {complaint.location_coords.lat.toFixed(4)},{" "}
-                {complaint.location_coords.lng.toFixed(4)}
+                {complaint.location_coords?.lat?.toFixed(4) || "N/A"},{" "}
+                {complaint.location_coords?.lng?.toFixed(4) || "N/A"}
               </p>
             </div>
           </div>
 
           {/* Images */}
-          {complaint.images.length > 0 && (
+          {complaint.images && complaint.images.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold mb-2 flex items-center gap-1">
                 <ImageIcon className="w-4 h-4" />
@@ -237,9 +237,15 @@ export default function ComplaintDetailModal({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="assigned">Assigned</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
+                    {complaint.status === "assigned" && (
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                    )}
+                    {complaint.status === "in_progress" && (
+                      <>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
 
@@ -250,7 +256,11 @@ export default function ComplaintDetailModal({
                   rows={3}
                 />
 
-                <Button onClick={handleSubmit} className="w-full">
+                <Button 
+                  onClick={handleSubmit} 
+                  className="w-full"
+                  disabled={newStatus === complaint.status}
+                >
                   <ArrowRight className="w-4 h-4 mr-2" />
                   Submit Update
                 </Button>

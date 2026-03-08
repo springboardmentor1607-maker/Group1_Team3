@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../api/axios";
+import { getVolunteerComplaints } from "../services/volunteerServices";
 import "./VolunteerDashboard.css";
 
 const VolunteerDashboard = () => {
@@ -19,19 +19,11 @@ const VolunteerDashboard = () => {
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await API.get("/complaints",{
-            headers : {
-                Authorization : `Bearer ${token}`
-            }
-        })
-
-        const data = res.data.complaints || res.data;
-        setComplaints(data);
+        const response = await getVolunteerComplaints();
+        setComplaints(response.complaints || []);
         setLoading(false);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching volunteer complaints:", err);
         setLoading(false);
       }
     };

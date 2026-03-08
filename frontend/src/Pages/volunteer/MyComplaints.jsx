@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -19,12 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { complaints as allComplaints, volunteers } from "@/data/mockData";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ComplaintDetailModal from "@/components/volunteer/ComplaintDetailModal";
-
-const currentVolunteer = volunteers[0];
+import { getVolunteerComplaints, updateComplaintStatus } from "@/services/volunteerServices";
 
 const issueTypeLabels = {
   water_leak: "Water Leak",
@@ -46,15 +44,43 @@ const statusColors = {
 };
 
 export default function MyComplaints({ statusFilter }) {
-  const [complaints, setComplaints] = useState(
-    allComplaints.filter((c) => c.assignedTo === currentVolunteer.id)
-  );
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [search, setSearch] = useState("");
   const [priority, setPriority] = useState("all");
   const [status, setStatus] = useState(statusFilter || "all");
   const [sort, setSort] = useState("newest");
   const [selectedComplaint, setSelectedComplaint] = useState(null);
+
+  // Fetch complaints from backend
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log("Fetching volunteer complaints with filter:", statusFilter);
+        
+        const response = await getVolunteerComplaints(
+          statusFilter && statusFilter !== "all" ? statusFilter : null
+        );
+        
+        console.log("Volunteer complaints response:", response);
+        setComplaints(response.complaints || []);
+      } catch (error) {
+        console.error("Error fetching complaints:", error);
+        console.error("Error response:", error.response);
+        const errorMsg = error.response?.data?.message || error.message || "Failed to load complaints";
+        setError(errorMsg);
+        toast.error(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchComplaints();
+  }, [statusFilter]);
 
   const filtered = useMemo(() => {
     let result = [...complaints];
@@ -64,7 +90,7 @@ export default function MyComplaints({ statusFilter }) {
       result = result.filter(
         (c) =>
           c.title.toLowerCase().includes(q) ||
-          c.id.toLowerCase().includes(q)
+          c._id.toLowerCase().includes(q)
       );
     }
 
@@ -85,17 +111,48 @@ export default function MyComplaints({ statusFilter }) {
     return result;
   }, [complaints, search, priority, status, sort]);
 
-  const handleStatusUpdate = (id, newStatus) => {
-    setComplaints((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, status: newStatus, updated_at: new Date().toISOString() }
-          : c
-      )
-    );
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      const response = await updateComplaintStatus(id, newStatus);
+      
+      // Update local state
+      setComplaints((prev) =>
+        prev.map((c) =>
+          c._id === id
+            ? { ...c, status: newStatus, updated_at: new Date().toISOString() }
+            : c
+        )
+      );
 
-    toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
+      toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
+      setSelectedComplaint(null);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error(error.response?.data?.message || "Failed to update status");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-16">
+        <div className="text-muted-foreground">Loading complaints...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <div className="text-red-600 mb-4">⚠️ Error: {error}</div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -165,7 +222,7 @@ export default function MyComplaints({ statusFilter }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((complaint, i) => (
             <motion.div
-              key={complaint.id}
+              key={complaint._id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
@@ -177,7 +234,7 @@ export default function MyComplaints({ statusFilter }) {
                 <div className="p-4">
                   <div className="flex justify-between mb-2">
                     <span className="text-[10px] font-mono text-muted-foreground">
-                      {complaint.id}
+                      {complaint._id}
                     </span>
 
                     <Badge
@@ -203,7 +260,7 @@ export default function MyComplaints({ statusFilter }) {
                       {format(new Date(complaint.created_at), "dd MMM yyyy")}
                     </span>
 
-                    {complaint.images.length > 0 && (
+                    {complaint.images && complaint.images.length > 0 && (
                       <span className="flex items-center gap-1">
                         <ImageIcon className="w-3 h-3" />
                         {complaint.images.length}
