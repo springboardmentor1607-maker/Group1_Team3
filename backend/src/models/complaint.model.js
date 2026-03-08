@@ -49,7 +49,7 @@ const complaintSchema = new mongoose.Schema({
 
     status : {
         type : String,
-        enum : ["received","assigned","in_review","resolved"],
+        enum : ["received","assigned","in_progress","resolved"],
         default : "received"
     }
 
