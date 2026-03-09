@@ -22,6 +22,14 @@ export const createComplaint = async (req, res) => {
 
         let imageUrls = [];
         if(req.files && req.files.length > 0){
+            const cloudinaryConfig = cloudinary.config();
+            if (!cloudinaryConfig.api_key || !cloudinaryConfig.api_secret || !cloudinaryConfig.cloud_name) {
+                return res.status(500).json({
+                    success: false,
+                    message: "Image upload configuration is missing on server",
+                    error: "Cloudinary env vars are not set"
+                });
+            }
             for(let file of req.files){
                 const uploadFromBuffer = () => new Promise((resolve,reject) => {
                     const stream = cloudinary.uploader.upload_stream(

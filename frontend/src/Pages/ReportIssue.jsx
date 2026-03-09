@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import "./ReportIssue.css";
 import "ol/ol.css";
 import Swal from "sweetalert2";
@@ -87,6 +86,21 @@ const ReportIssue = () => {
         src: "https://openlayers.org/en/latest/examples/data/icon.png",
       }),
     });
+
+    const updateSelectedPoint = async (projectedCoordinates) => {
+      const coords = toLonLat(projectedCoordinates);
+      setSelectedLocation(coords);
+
+      try {
+        const addressString = await reverseGeocode(coords[0], coords[1]);
+        setFormData((prev) => ({
+          ...prev,
+          address: addressString,
+        }));
+      } catch (e) {
+        console.error("Reverse geocode failed:", e);
+      }
+    };
   
     const initMap = async () => {
       const userLocation = user?.location || "";
@@ -126,7 +140,7 @@ const ReportIssue = () => {
       // Save initial lat/lng
       const initialCoords = toLonLat(centerProjected);
       setSelectedLocation(initialCoords);
-  
+
       try {
         const addressString = await reverseGeocode(
           initialCoords[0],
@@ -154,25 +168,25 @@ const ReportIssue = () => {
       modifyInteraction.on("modifyend", async (event) => {
         const feature = event.features.item(0);
         const geometry = feature.getGeometry();
-        const coords = toLonLat(geometry.getCoordinates());
-  
-        setSelectedLocation(coords);
-  
-        try {
-          const addressString = await reverseGeocode(
-            coords[0],
-            coords[1]
-          );
-  
-          setFormData((prev) => ({
-            ...prev,
-            address: addressString,
-          }));
-        } catch (e) {
-          console.error("Reverse geocode failed:", e);
-        }
+        await updateSelectedPoint(geometry.getCoordinates());
   
         // modifyInteraction.setActive(false); // disable again after move
+      });
+
+      mapInstance.on("singleclick", async (event) => {
+        const clickCoordinates = event.coordinate;
+        let marker = markerSource.getFeatures()[0];
+
+        if (!marker) {
+          marker = new Feature({
+            geometry: new Point(clickCoordinates),
+          });
+          markerSource.addFeature(marker);
+        } else {
+          marker.getGeometry().setCoordinates(clickCoordinates);
+        }
+
+        await updateSelectedPoint(clickCoordinates);
       });
   
       setMap(mapInstance);
