@@ -5,7 +5,9 @@ import {
     getAllComplaints,
     getComplaintById,
     updateComplaintStatus,
-    deleteComplaint
+    deleteComplaint,
+    upvoteComplaint,
+    downvoteComplaint
 } from '../controllers/complaint.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 import { authorizeRoles } from '../middleware/roleCheck.middleware.js';
@@ -17,6 +19,8 @@ const router = express.Router();
 router.post("/create", verifyToken, upload.array("images",3), createComplaint);
 router.get("/my-complaints", verifyToken, getUserComplaints);
 router.get("/:id", verifyToken, getComplaintById);
+router.post("/:id/upvote", verifyToken, upvoteComplaint);
+router.post("/:id/downvote", verifyToken, downvoteComplaint);
 
 // Admin routes
 router.get("/", verifyToken, authorizeRoles("admin","volunteer"), getAllComplaints);

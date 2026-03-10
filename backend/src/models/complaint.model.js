@@ -47,6 +47,14 @@ const complaintSchema = new mongoose.Schema({
         ref : "User",
     },
 
+    upvotes:{
+        type: Number,
+        default:0
+    },
+    downvotes: {
+        type: Number,
+        default:0
+    },
     status : {
         type : String,
         enum : ["received","assigned","in_progress","resolved"],

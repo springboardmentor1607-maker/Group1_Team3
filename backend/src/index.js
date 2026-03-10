@@ -13,6 +13,7 @@ import complaintRoutes from './routes/complaint.route.js'
 import chatRoutes from './routes/chatbot.route.js'
 import adminRoutes from './routes/admin.route.js'
 import volunteerRoutes from './routes/volunteer.route.js'
+import commentRoutes from './routes/comment.route.js'
 import { connectDB } from './config/db.js';
 import cors from 'cors'
 
@@ -32,6 +33,7 @@ app.use("/api/complaints",complaintRoutes)
 app.use("/api/chat",chatRoutes)
 app.use("/api/admin",adminRoutes)
 app.use("/api/volunteer",volunteerRoutes)
+app.use("/api/complaints",commentRoutes)
 
 
 
