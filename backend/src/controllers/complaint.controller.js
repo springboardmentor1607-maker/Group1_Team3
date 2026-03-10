@@ -136,13 +136,35 @@ export const getUserComplaints = async (req, res) => {
 
 // Get all complaints (Admin)
 export const getAllComplaints = async (req, res) => {
+
     try {
 
-        const complaints = await Complaint
-            .find()
-            .populate("user_id", "name email")
-            .populate("assigned_to", "name email")
-            .sort({ created_at: -1 });
+        const role = req.user.role;
+        const userId = req.user.id;
+
+        let complaints;
+
+        // Volunteer → only assigned complaints
+        if (role === "volunteer") {
+
+            complaints = await Complaint
+                .find({ assigned_to: userId })
+                .populate("user_id", "name email")
+                .populate("assigned_to", "name email")
+                .sort({ created_at: -1 });
+
+        }
+
+        // Admin + normal user → all complaints
+        else {
+
+            complaints = await Complaint
+                .find()
+                .populate("user_id", "name email")
+                .populate("assigned_to", "name email")
+                .sort({ created_at: -1 });
+
+        }
 
         res.status(200).json({
             success: true,
@@ -160,8 +182,6 @@ export const getAllComplaints = async (req, res) => {
 
     }
 };
-
-
 
 // Get complaint by id
 export const getComplaintById = async (req, res) => {
