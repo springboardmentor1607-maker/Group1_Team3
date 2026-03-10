@@ -3,8 +3,6 @@ import API from "../api/axios";
 import Swal from "sweetalert2";
 import "./ViewComplaints.css";
 
-const LOCAL_ENGAGEMENT_KEY = "complaint_engagement_store";
-
 const formatDistanceToNow = (dateValue) => {
   if (!dateValue) return "Unknown time";
 
@@ -54,19 +52,6 @@ const parseStoredUser = () => {
   }
 };
 
-const parseEngagementStore = () => {
-  try {
-    const rawStore = localStorage.getItem(LOCAL_ENGAGEMENT_KEY);
-    return rawStore ? JSON.parse(rawStore) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveEngagementStore = (store) => {
-  localStorage.setItem(LOCAL_ENGAGEMENT_KEY, JSON.stringify(store));
-};
-
 const normalizeComplaint = (complaint, currentUser) => {
   const reporter =
     complaint.user_id && typeof complaint.user_id === "object"
@@ -82,19 +67,21 @@ const normalizeComplaint = (complaint, currentUser) => {
     reporterName:
       reporter?.name ||
       reporter?.email ||
-      (String(reporterId) === String(currentUser?._id) ? currentUser?.name : null) ||
+      (String(reporterId) === String(currentUser?._id || currentUser?.id)
+        ? currentUser?.name
+        : null) ||
       "Unknown reporter",
     assignedName:
       complaint.assigned_to && typeof complaint.assigned_to === "object"
         ? complaint.assigned_to.name || complaint.assigned_to.email
         : null,
-    isMine: String(reporterId) === String(currentUser?._id),
   };
 };
 
 const ViewComplaints = () => {
   const [complaints, setComplaints] = useState([]);
-  const [engagement, setEngagement] = useState({});
+  const [commentCounts, setCommentCounts] = useState({});
+  const [comments, setComments] = useState([]);
   const [filterPriority, setFilterPriority] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
@@ -107,10 +94,6 @@ const ViewComplaints = () => {
 
   const user = useMemo(parseStoredUser, []);
   const isPrivilegedViewer = user?.role === "admin" || user?.role === "volunteer";
-
-  useEffect(() => {
-    setEngagement(parseEngagementStore());
-  }, []);
 
   useEffect(() => {
     const fetchComplaints = async () => {
@@ -134,9 +117,7 @@ const ViewComplaints = () => {
         setComplaints(list.map((item) => normalizeComplaint(item, user)));
       } catch (fetchError) {
         console.error("Error fetching complaints:", fetchError);
-        const message =
-          fetchError.response?.data?.message || "Failed to load complaints.";
-        setError(message);
+        setError(fetchError.response?.data?.message || "Failed to load complaints.");
       } finally {
         setLoading(false);
       }
@@ -144,6 +125,34 @@ const ViewComplaints = () => {
 
     fetchComplaints();
   }, [isPrivilegedViewer, user]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || complaints.length === 0) {
+      setCommentCounts({});
+      return;
+    }
+
+    const fetchCommentCounts = async () => {
+      try {
+        const entries = await Promise.all(
+          complaints.map(async (complaint) => {
+            const response = await API.get(`/complaints/${complaint.id}/comments`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            return [complaint.id, response.data?.comments?.length || 0];
+          }),
+        );
+
+        setCommentCounts(Object.fromEntries(entries));
+      } catch (countError) {
+        console.error("Error fetching comment counts:", countError);
+      }
+    };
+
+    fetchCommentCounts();
+  }, [complaints]);
 
   const filteredComplaints = useMemo(() => {
     const next = complaints.filter((complaint) => {
@@ -188,20 +197,43 @@ const ViewComplaints = () => {
     [complaints],
   );
 
-  const getComplaintEngagement = (complaintId) =>
-    engagement[complaintId] || { upvotes: [], downvotes: [], comments: [] };
+  const refreshComplaints = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  const updateEngagement = (complaintId, updater) => {
-    setEngagement((current) => {
-      const next = { ...current };
-      const existing = next[complaintId] || { upvotes: [], downvotes: [], comments: [] };
-      next[complaintId] = updater(existing);
-      saveEngagementStore(next);
-      return next;
-    });
+    try {
+      const endpoint = isPrivilegedViewer ? "/complaints" : "/complaints/my-complaints";
+      const response = await API.get(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const list = response.data?.complaints || [];
+      setComplaints(list.map((item) => normalizeComplaint(item, user)));
+    } catch (refreshError) {
+      console.error("Error refreshing complaints:", refreshError);
+    }
   };
 
-  const currentUserKey = String(user?._id || user?.id || user?.email || "guest");
+  const refreshComments = async (complaintId) => {
+    const token = localStorage.getItem("token");
+    if (!token || !complaintId) return;
+
+    try {
+      const response = await API.get(`/complaints/${complaintId}/comments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const nextComments = response.data?.comments || [];
+      setComments(nextComments);
+      setCommentCounts((current) => ({
+        ...current,
+        [complaintId]: nextComments.length,
+      }));
+    } catch (commentError) {
+      console.error("Error fetching comments:", commentError);
+      setComments([]);
+    }
+  };
 
   const openDetails = (complaint) => {
     setSelectedComplaint(complaint);
@@ -216,34 +248,16 @@ const ViewComplaints = () => {
   };
 
   const openComments = async (complaint) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    const res = await API.get(
-      `/complaints/${complaint.id}/comments`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
-
-    
-
-    setSelectedComplaintForComments({
-      ...complaint,
-      comments: res.data.comments,
-    });
-
+    setSelectedComplaintForComments(complaint);
     setNewComment("");
     document.body.classList.add("modal-open");
-
-  } catch (error) {
-    console.error(error);
-  }
-};
+    await refreshComments(complaint.id);
+  };
 
   const closeComments = () => {
     setSelectedComplaintForComments(null);
     setNewComment("");
+    setComments([]);
     document.body.classList.remove("modal-open");
   };
 
@@ -284,99 +298,153 @@ const ViewComplaints = () => {
   };
 
   const handleVote = async (complaintId, type) => {
-  try {
     const token = localStorage.getItem("token");
+    if (!token) return;
 
-    if (type === "up") {
-      await API.post(
-        `/complaints/${complaintId}/upvote`,
+    try {
+      const endpoint =
+        type === "up"
+          ? `/complaints/${complaintId}/upvote`
+          : `/complaints/${complaintId}/downvote`;
+
+      const response = await API.post(
+        endpoint,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
-    }
 
-    if (type === "down") {
-      await API.post(
-        `/complaints/${complaintId}/downvote`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const updatedComplaint = response.data?.complaint;
+      if (!updatedComplaint) return;
+
+      const normalized = normalizeComplaint(updatedComplaint, user);
+      setComplaints((current) =>
+        current.map((complaint) => (complaint.id === complaintId ? normalized : complaint)),
       );
+
+      if (selectedComplaint?.id === complaintId) {
+        setSelectedComplaint(normalized);
+      }
+    } catch (voteError) {
+      console.error(`Error submitting ${type}vote:`, voteError);
+      Swal.fire("Error", "Vote failed", "error");
     }
-
-    Swal.fire({
-      icon: "success",
-      title: "Vote updated",
-      timer: 1000,
-      showConfirmButton: false,
-    });
-
-  } catch (error) {
-    console.error(error);
-    Swal.fire("Error", "Vote failed", "error");
-  }
-};
+  };
 
   const handleAddComment = async () => {
-  const complaintId = selectedComplaintForComments?.id;
-  const text = newComment.trim();
-
-  if (!complaintId || !text) return;
-
-  try {
+    const complaintId = selectedComplaintForComments?.id;
+    const text = newComment.trim();
     const token = localStorage.getItem("token");
 
-    // Add comment
-    await API.post(
-      `/complaints/${complaintId}/comment`,
-      { text },
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+    if (!token || !complaintId || !text) return;
+
+    try {
+      await API.post(
+        `/complaints/${complaintId}/comment`,
+        { text },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      setNewComment("");
+      await refreshComments(complaintId);
+      await refreshComplaints();
+    } catch (commentError) {
+      console.error("Error adding comment:", commentError);
+      Swal.fire("Error", "Comment failed", "error");
+    }
+  };
+
+  const renderComplaintCard = (complaint) => {
+    const priorityColor = priorityColors[complaint.priority] || "#6b7280";
+    const statusColor = statusColors[complaint.status] || "#4b5563";
+    const upvotes = Number(complaint.upvotes || 0);
+    const downvotes = Number(complaint.downvotes || 0);
+    const commentsCount = commentCounts[complaint.id] || 0;
+
+    return (
+      <article
+        key={complaint.id}
+        className="complaint-card"
+        onClick={() => openDetails(complaint)}
+      >
+        <div className="card-image-wrapper">
+          <img
+            src={complaint.imageUrls[0] || "https://placehold.co/800x600?text=No+Image"}
+            alt={complaint.title}
+            className="complaint-image"
+          />
+          <div className="card-badges">
+            <span className="badge" style={{ backgroundColor: priorityColor }}>
+              {complaint.priority || "unknown"}
+            </span>
+            <span className="badge" style={{ backgroundColor: statusColor }}>
+              {(complaint.status || "unknown").replace(/_/g, " ")}
+            </span>
+          </div>
+        </div>
+
+        <div className="complaint-content">
+          <div className="complaint-meta">
+            <span>{complaint.issueType}</span>
+            <span>{formatDistanceToNow(complaint.createdAt)}</span>
+          </div>
+
+          <h2 className="complaint-title">{complaint.title}</h2>
+          <p className="complaint-description">
+            {complaint.description || "No description available."}
+          </p>
+
+          <div className="complaint-footer">
+            <span>{complaint.reporterName}</span>
+            <div className="footer-actions">
+              <button
+                type="button"
+                className="action-btn btn-vote"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleVote(complaint.id, "up");
+                }}
+              >
+                <i className="bi bi-hand-thumbs-up" /> {upvotes}
+              </button>
+              <button
+                type="button"
+                className="action-btn btn-vote"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleVote(complaint.id, "down");
+                }}
+              >
+                <i className="bi bi-hand-thumbs-down" /> {downvotes}
+              </button>
+              <button
+                type="button"
+                className="action-btn btn-comment"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openComments(complaint);
+                }}
+              >
+                <i className="bi bi-chat-left-text" /> {commentsCount}
+              </button>
+              <button
+                type="button"
+                className="action-btn btn-view"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openDetails(complaint);
+                }}
+              >
+                View details
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
     );
-    const commentRes = await API.get(
-  `/complaints/${complaintId}/comments`,
-  {
-    headers: { Authorization: `Bearer ${token}` }
-  }
-);
-
-setSelectedComplaintForComments({
-  ...selectedComplaintForComments,
-  comments: commentRes.data.comments
-});
-
-    // reload complaints
-    const endpoint = isPrivilegedViewer
-      ? "/complaints"
-      : "/complaints/my-complaints";
-
-    const res = await API.get(endpoint, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const list = res.data?.complaints || [];
-    setComplaints(list.map((item) => normalizeComplaint(item, user)));
-
-    setNewComment("");
-
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-  const handleDeleteComment = (complaintId, commentId) => {
-    updateEngagement(complaintId, (existing) => ({
-      ...existing,
-      comments: (existing.comments || []).filter((comment) => comment.id !== commentId),
-    }));
   };
 
   return (
@@ -389,9 +457,7 @@ setSelectedComplaintForComments({
             </p>
             <h1>Complaints</h1>
             <p className="header-copy">
-              {isPrivilegedViewer
-                ? "Viewing complaint data from the backend complaint service."
-                : "This backend currently exposes only your submitted complaints for user accounts."}
+              Viewing complaint data, votes, and comments from the backend complaint service.
             </p>
           </div>
 
@@ -466,98 +532,7 @@ setSelectedComplaintForComments({
         {!loading && !error ? (
           filteredComplaints.length > 0 ? (
             <section className="complaints-grid" aria-label="Complaint list">
-              {filteredComplaints.map((complaint) => {
-                const priorityColor = priorityColors[complaint.priority] || "#6b7280";
-                const statusColor = statusColors[complaint.status] || "#4b5563";
-                const complaintEngagement = getComplaintEngagement(complaint.id);
-                const upvotes = complaint.upvotes || 0;
-                const downvotes = complaint.downvotes || 0;
-                const commentsCount = complaint.comments ||0;
-                const hasUpvoted = complaintEngagement.upvotes.includes(currentUserKey);
-                const hasDownvoted = complaintEngagement.downvotes.includes(currentUserKey);
-
-                return (
-                  <article
-                    key={complaint.id}
-                    className="complaint-card"
-                    onClick={() => openDetails(complaint)}
-                  >
-                    <div className="card-image-wrapper">
-                      <img
-                        src={complaint.imageUrls[0] || "https://placehold.co/800x600?text=No+Image"}
-                        alt={complaint.title}
-                        className="complaint-image"
-                      />
-                      <div className="card-badges">
-                        <span className="badge" style={{ backgroundColor: priorityColor }}>
-                          {complaint.priority || "unknown"}
-                        </span>
-                        <span className="badge" style={{ backgroundColor: statusColor }}>
-                          {(complaint.status || "unknown").replace(/_/g, " ")}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="complaint-content">
-                      <div className="complaint-meta">
-                        <span>{complaint.issueType}</span>
-                        <span>{formatDistanceToNow(complaint.createdAt)}</span>
-                      </div>
-
-                      <h2 className="complaint-title">{complaint.title}</h2>
-                      <p className="complaint-description">
-                        {complaint.description || "No description available."}
-                      </p>
-
-                      <div className="complaint-footer">
-                        <span>{complaint.reporterName}</span>
-                        <div className="footer-actions">
-                          <button
-                            type="button"
-                            className={`action-btn btn-vote ${hasUpvoted ? "active-up" : ""}`}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleVote(complaint.id, "up");
-                            }}
-                          >
-                            <i className="bi bi-hand-thumbs-up" /> {upvotes}
-                          </button>
-                          <button
-                            type="button"
-                            className={`action-btn btn-vote ${hasDownvoted ? "active-down" : ""}`}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleVote(complaint.id, "down");
-                            }}
-                          >
-                            <i className="bi bi-hand-thumbs-down" /> {downvotes}
-                          </button>
-                          <button
-                            type="button"
-                            className="action-btn btn-comment"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              openComments(complaint);
-                            }}
-                          >
-                            <i className="bi bi-chat-left-text" /> {commentsCount}
-                          </button>
-                          <button
-                            type="button"
-                            className="action-btn btn-view"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              openDetails(complaint);
-                            }}
-                          >
-                            View details
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+              {filteredComplaints.map(renderComplaintCard)}
             </section>
           ) : (
             <p className="state-message">No complaints match the selected filters.</p>
@@ -673,31 +648,16 @@ setSelectedComplaintForComments({
             </div>
 
             <div className="comments-list">
-              {getComplaintEngagement(selectedComplaintForComments.id).comments.length > 0 ? (
-                getComplaintEngagement(selectedComplaintForComments.id).comments.map((comment) => {
-                  const isAuthor = comment.authorId === currentUserKey;
-
-                  return (
-                    <article key={comment.id} className="comment-card">
-                      <div className="comment-top">
-                        <strong>{comment.authorName}</strong>
-                        <span>{formatDistanceToNow(comment.createdAt)}</span>
-                      </div>
-                      <p>{comment.text}</p>
-                      {isAuthor ? (
-                        <button
-                          type="button"
-                          className="comment-delete"
-                          onClick={() =>
-                            handleDeleteComment(selectedComplaintForComments.id, comment.id)
-                          }
-                        >
-                          Delete
-                        </button>
-                      ) : null}
-                    </article>
-                  );
-                })
+              {comments.length > 0 ? (
+                comments.map((comment) => (
+                  <article key={comment._id || comment.id} className="comment-card">
+                    <div className="comment-top">
+                      <strong>{comment.user_id?.name || comment.user_id?.email || "User"}</strong>
+                      <span>{formatDistanceToNow(comment.createdAt)}</span>
+                    </div>
+                    <p>{comment.text}</p>
+                  </article>
+                ))
               ) : (
                 <p className="state-message">No comments yet.</p>
               )}
