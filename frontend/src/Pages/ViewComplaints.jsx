@@ -215,11 +215,31 @@ const ViewComplaints = () => {
     document.body.classList.remove("modal-open");
   };
 
-  const openComments = (complaint) => {
-    setSelectedComplaintForComments(complaint);
+  const openComments = async (complaint) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await API.get(
+      `/complaints/${complaint.id}/comments`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    
+
+    setSelectedComplaintForComments({
+      ...complaint,
+      comments: res.data.comments,
+    });
+
     setNewComment("");
     document.body.classList.add("modal-open");
-  };
+
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const closeComments = () => {
     setSelectedComplaintForComments(null);
@@ -263,56 +283,94 @@ const ViewComplaints = () => {
     setModalImageIndex((current) => (current + 1) % selectedComplaint.imageUrls.length);
   };
 
-  const handleVote = (complaintId, type) => {
-    updateEngagement(complaintId, (existing) => {
-      const upvotes = new Set(existing.upvotes || []);
-      const downvotes = new Set(existing.downvotes || []);
+  const handleVote = async (complaintId, type) => {
+  try {
+    const token = localStorage.getItem("token");
 
-      if (type === "up") {
-        if (upvotes.has(currentUserKey)) upvotes.delete(currentUserKey);
-        else {
-          upvotes.add(currentUserKey);
-          downvotes.delete(currentUserKey);
+    if (type === "up") {
+      await API.post(
+        `/complaints/${complaintId}/upvote`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      }
+      );
+    }
 
-      if (type === "down") {
-        if (downvotes.has(currentUserKey)) downvotes.delete(currentUserKey);
-        else {
-          downvotes.add(currentUserKey);
-          upvotes.delete(currentUserKey);
+    if (type === "down") {
+      await API.post(
+        `/complaints/${complaintId}/downvote`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      }
+      );
+    }
 
-      return {
-        ...existing,
-        upvotes: Array.from(upvotes),
-        downvotes: Array.from(downvotes),
-      };
+    Swal.fire({
+      icon: "success",
+      title: "Vote updated",
+      timer: 1000,
+      showConfirmButton: false,
     });
-  };
 
-  const handleAddComment = () => {
-    const complaintId = selectedComplaintForComments?.id;
-    const text = newComment.trim();
+  } catch (error) {
+    console.error(error);
+    Swal.fire("Error", "Vote failed", "error");
+  }
+};
 
-    if (!complaintId || !text) return;
+  const handleAddComment = async () => {
+  const complaintId = selectedComplaintForComments?.id;
+  const text = newComment.trim();
 
-    const comment = {
-      id: `${Date.now()}`,
-      text,
-      createdAt: new Date().toISOString(),
-      authorId: currentUserKey,
-      authorName: user?.name || user?.email || "You",
-    };
+  if (!complaintId || !text) return;
 
-    updateEngagement(complaintId, (existing) => ({
-      ...existing,
-      comments: [comment, ...(existing.comments || [])],
-    }));
+  try {
+    const token = localStorage.getItem("token");
+
+    // Add comment
+    await API.post(
+      `/complaints/${complaintId}/comment`,
+      { text },
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    const commentRes = await API.get(
+  `/complaints/${complaintId}/comments`,
+  {
+    headers: { Authorization: `Bearer ${token}` }
+  }
+);
+
+setSelectedComplaintForComments({
+  ...selectedComplaintForComments,
+  comments: commentRes.data.comments
+});
+
+    // reload complaints
+    const endpoint = isPrivilegedViewer
+      ? "/complaints"
+      : "/complaints/my-complaints";
+
+    const res = await API.get(endpoint, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const list = res.data?.complaints || [];
+    setComplaints(list.map((item) => normalizeComplaint(item, user)));
 
     setNewComment("");
-  };
+
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const handleDeleteComment = (complaintId, commentId) => {
     updateEngagement(complaintId, (existing) => ({
@@ -412,9 +470,9 @@ const ViewComplaints = () => {
                 const priorityColor = priorityColors[complaint.priority] || "#6b7280";
                 const statusColor = statusColors[complaint.status] || "#4b5563";
                 const complaintEngagement = getComplaintEngagement(complaint.id);
-                const upvotes = complaintEngagement.upvotes.length;
-                const downvotes = complaintEngagement.downvotes.length;
-                const commentsCount = complaintEngagement.comments.length;
+                const upvotes = complaint.upvotes || 0;
+                const downvotes = complaint.downvotes || 0;
+                const commentsCount = complaint.comments ||0;
                 const hasUpvoted = complaintEngagement.upvotes.includes(currentUserKey);
                 const hasDownvoted = complaintEngagement.downvotes.includes(currentUserKey);
 
