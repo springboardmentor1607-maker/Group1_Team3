@@ -138,6 +138,14 @@ body.modal-open {
   color: var(--vc-danger);
 }
 
+.complaints-section-header {
+  margin: 2rem 0 1rem;
+}
+
+.complaints-section-header .eyebrow {
+  margin-bottom: 0;
+}
+
 .complaints-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
