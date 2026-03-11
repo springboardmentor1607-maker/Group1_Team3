@@ -93,6 +93,7 @@ const ViewComplaints = () => {
   const [error, setError] = useState("");
 
   const user = useMemo(parseStoredUser, []);
+  const currentUserId = String(user?._id || user?.id || "");
   const isPrivilegedViewer = user?.role === "admin" || user?.role === "volunteer";
 
   useEffect(() => {
@@ -108,8 +109,7 @@ const ViewComplaints = () => {
         setLoading(true);
         setError("");
 
-        const endpoint = isPrivilegedViewer ? "/complaints" : "/complaints/my-complaints";
-        const response = await API.get(endpoint, {
+        const response = await API.get("/complaints", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -197,13 +197,28 @@ const ViewComplaints = () => {
     [complaints],
   );
 
+  const ownComplaints = useMemo(
+    () =>
+      filteredComplaints.filter(
+        (complaint) => String(complaint.user_id?._id || complaint.user_id || "") === currentUserId,
+      ),
+    [currentUserId, filteredComplaints],
+  );
+
+  const otherComplaints = useMemo(
+    () =>
+      filteredComplaints.filter(
+        (complaint) => String(complaint.user_id?._id || complaint.user_id || "") !== currentUserId,
+      ),
+    [currentUserId, filteredComplaints],
+  );
+
   const refreshComplaints = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     try {
-      const endpoint = isPrivilegedViewer ? "/complaints" : "/complaints/my-complaints";
-      const response = await API.get(endpoint, {
+      const response = await API.get("/complaints", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -453,7 +468,7 @@ const ViewComplaints = () => {
         <header className="complaints-page-header">
           <div>
             <p className="eyebrow">
-              {isPrivilegedViewer ? "Operations feed" : "Your reports"}
+              {isPrivilegedViewer ? "Operations feed" : "Your reports first"}
             </p>
             <h1>Complaints</h1>
             <p className="header-copy">
@@ -531,9 +546,30 @@ const ViewComplaints = () => {
 
         {!loading && !error ? (
           filteredComplaints.length > 0 ? (
-            <section className="complaints-grid" aria-label="Complaint list">
-              {filteredComplaints.map(renderComplaintCard)}
-            </section>
+            isPrivilegedViewer ? (
+              <section className="complaints-grid" aria-label="Complaint list">
+                {filteredComplaints.map(renderComplaintCard)}
+              </section>
+            ) : (
+              <>
+                {ownComplaints.length > 0 ? (
+                  <section aria-label="Your complaints">
+                    <header className="complaints-section-header">
+                      <p className="eyebrow">Your reports</p>
+                    </header>
+                    <div className="complaints-grid">{ownComplaints.map(renderComplaintCard)}</div>
+                  </section>
+                ) : null}
+                {otherComplaints.length > 0 ? (
+                  <section aria-label="Other complaints">
+                    <header className="complaints-section-header">
+                      <p className="eyebrow">Other reports</p>
+                    </header>
+                    <div className="complaints-grid">{otherComplaints.map(renderComplaintCard)}</div>
+                  </section>
+                ) : null}
+              </>
+            )
           ) : (
             <p className="state-message">No complaints match the selected filters.</p>
           )
