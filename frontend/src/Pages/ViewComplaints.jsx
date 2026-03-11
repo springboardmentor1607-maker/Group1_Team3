@@ -360,8 +360,8 @@ const ViewComplaints = () => {
   const renderComplaintCard = (complaint) => {
     const priorityColor = priorityColors[complaint.priority] || "#6b7280";
     const statusColor = statusColors[complaint.status] || "#4b5563";
-    const upvotes = Number(complaint.upvotes || 0);
-    const downvotes = Number(complaint.downvotes || 0);
+    const upvotes = complaint.upvotes?.length || 0;
+    const downvotes = complaint.downvotes?.length || 0;
     const commentsCount = commentCounts[complaint.id] || 0;
 
     return (
