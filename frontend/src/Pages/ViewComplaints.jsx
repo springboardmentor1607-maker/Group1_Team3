@@ -91,6 +91,8 @@ const ViewComplaints = () => {
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeVote, setActiveVote]= useState("");
+
 
   const user = useMemo(parseStoredUser, []);
   const isPrivilegedViewer = user?.role === "admin" || user?.role === "volunteer";
@@ -402,23 +404,25 @@ const ViewComplaints = () => {
             <div className="footer-actions">
               <button
                 type="button"
-                className="action-btn btn-vote"
+                className={`action-btn btn-vote ${activeVote === complaint.id + "up" ? "vote-animate" : ""}`}
                 onClick={(event) => {
                   event.stopPropagation();
+                  setActiveVote(complaint.id+ "up");
                   handleVote(complaint.id, "up");
                 }}
               >
-                <i className="bi bi-hand-thumbs-up" /> {upvotes}
+                <i className={`bi bi-hand-thumbs-up vote-icon ${activeVote === complaint.id + "up" ? "vote-animate": ""}`} /> {upvotes}
               </button>
               <button
                 type="button"
-                className="action-btn btn-vote"
+                className={`action-btn btn-vote ${activeVote === complaint.id + "down" ? "vote-animate" : ""}`}
                 onClick={(event) => {
                   event.stopPropagation();
+                  setActiveVote(complaint.id + "down");
                   handleVote(complaint.id, "down");
                 }}
               >
-                <i className="bi bi-hand-thumbs-down" /> {downvotes}
+                <i className={`bi bi-hand-thumbs-down vote-icon ${activeVote === complaint.id + "down" ? "vote-animate": ""}`} /> {downvotes}
               </button>
               <button
                 type="button"
