@@ -529,11 +529,9 @@ body.modal-open {
 }
 
 .vote-animate {
-  animation: votePop 0.25s ease;
+  animation: votePop 0.3s ease;
 }
-.animate-count{
-  animation: countPop 0.25 ease;
-}
+
 
 .active-up {
   background: #22c55e;
@@ -551,11 +549,42 @@ body.modal-open {
 
 @keyframes votePop {
   0% { transform: scale(1); }
-  50% { transform: scale(1.35); }
+  50% { transform: scale(1.4); }
   100% { transform: scale(1); }
 }
+.vote-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: voteFade 0.6s ease forwards;
+}
 
+.vote-screen i {
+  font-size: 120px;
+  color: white;
+  animation: voteScale 0.6s ease;
+}
 
-.vote-animate {
-  animation: votePop 0.25s ease;
+.vote-screen.up {
+  background: rgba(34,197,94,0.9);
+}
+
+.vote-screen.down {
+  background: rgba(239,68,68,0.9);
+}
+
+@keyframes voteFade {
+  0% {opacity:0}
+  20% {opacity:1}
+  80% {opacity:1}
+  100% {opacity:0}
+}
+
+@keyframes voteScale {
+  0% {transform:scale(0.3)}
+  60% {transform:scale(1.2)}
+  100% {transform:scale(1)}
 }

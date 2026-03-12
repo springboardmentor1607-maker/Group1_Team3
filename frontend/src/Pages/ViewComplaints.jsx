@@ -92,6 +92,7 @@ const ViewComplaints = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeVote, setActiveVote]= useState("");
+  const [voteEffect, setVoteEffect] = useState("");
 
 
   const user = useMemo(parseStoredUser, []);
@@ -404,25 +405,29 @@ const ViewComplaints = () => {
             <div className="footer-actions">
               <button
                 type="button"
-                className={`action-btn btn-vote ${activeVote === complaint.id + "up" ? "vote-animate" : ""}`}
+                className={`action-btn btn-vote ${activeVote === complaint.id + "up" ? "vote-animate": ""}`}
                 onClick={(event) => {
                   event.stopPropagation();
                   setActiveVote(complaint.id+ "up");
+                  setVoteEffect("up");
+                  setTimeout(()=>setVoteEffect(""),600);
                   handleVote(complaint.id, "up");
                 }}
               >
-                <i className={`bi bi-hand-thumbs-up vote-icon ${activeVote === complaint.id + "up" ? "vote-animate": ""}`} /> {upvotes}
+                <i className="bi bi-hand-thumbs-up" /> {upvotes}
               </button>
               <button
                 type="button"
-                className={`action-btn btn-vote ${activeVote === complaint.id + "down" ? "vote-animate" : ""}`}
+                className={`action-btn btn-vote ${activeVote === complaint.id + "down" ? "vote-animate": ""}`}
                 onClick={(event) => {
                   event.stopPropagation();
                   setActiveVote(complaint.id + "down");
+                  setVoteEffect("down");
+                  setTimeout(() => setVoteEffect(""),600);
                   handleVote(complaint.id, "down");
                 }}
               >
-                <i className={`bi bi-hand-thumbs-down vote-icon ${activeVote === complaint.id + "down" ? "vote-animate": ""}`} /> {downvotes}
+                <i className="bi bi-hand-thumbs-down"/> {downvotes}
               </button>
               <button
                 type="button"
@@ -669,6 +674,18 @@ const ViewComplaints = () => {
           </div>
         </div>
       ) : null}
+      {voteEffect && (
+  <div className={`vote-screen ${voteEffect}`}>
+    <i
+      className={`bi ${
+        voteEffect === "up"
+          ? "bi-hand-thumbs-up-fill"
+          : "bi-hand-thumbs-down-fill"
+      }`}
+    ></i>
+  </div>
+)}
+
     </div>
   );
 };
