@@ -48,12 +48,14 @@ const complaintSchema = new mongoose.Schema({
     },
 
     upvotes:{
-        type: Number,
-        default:0
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "User",
+        default: []
     },
     downvotes: {
-        type: Number,
-        default:0
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "User",
+        default: []
     },
     status : {
         type : String,

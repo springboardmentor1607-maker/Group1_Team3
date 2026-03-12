@@ -136,13 +136,35 @@ export const getUserComplaints = async (req, res) => {
 
 // Get all complaints (Admin)
 export const getAllComplaints = async (req, res) => {
+
     try {
 
-        const complaints = await Complaint
-            .find()
-            .populate("user_id", "name email")
-            .populate("assigned_to", "name email")
-            .sort({ created_at: -1 });
+        const role = req.user.role;
+        const userId = req.user.id;
+
+        let complaints;
+
+        // Volunteer → only assigned complaints
+        if (role === "volunteer") {
+
+            complaints = await Complaint
+                .find({ assigned_to: userId })
+                .populate("user_id", "name email")
+                .populate("assigned_to", "name email")
+                .sort({ created_at: -1 });
+
+        }
+
+        // Admin + normal user → all complaints
+        else {
+
+            complaints = await Complaint
+                .find()
+                .populate("user_id", "name email")
+                .populate("assigned_to", "name email")
+                .sort({ created_at: -1 });
+
+        }
 
         res.status(200).json({
             success: true,
@@ -160,8 +182,6 @@ export const getAllComplaints = async (req, res) => {
 
     }
 };
-
-
 
 // Get complaint by id
 export const getComplaintById = async (req, res) => {
@@ -281,77 +301,114 @@ export const deleteComplaint = async (req, res) => {
 // Voting System (Milestone 3)
 // ========================
 
-
-// Upvote complaint
 export const upvoteComplaint = async (req, res) => {
-    try {
+  try {
 
-        const { id } = req.params;
+    const { id } = req.params;
+    const userId = req.user.id;
 
-        const complaint = await Complaint.findById(id);
+    const complaint = await Complaint.findById(id);
 
-        if (!complaint) {
-            return res.status(404).json({
-                success: false,
-                message: "Complaint not found"
-            });
-        }
-
-        complaint.upvotes += 1;
-
-        await complaint.save();
-
-        res.status(200).json({
-            success: true,
-            message: "Complaint upvoted successfully",
-            complaint
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: "Error upvoting complaint",
-            error: error.message
-        });
-
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: "Complaint not found"
+      });
     }
+
+    // initialize arrays if undefined
+    if (!complaint.upvotes) complaint.upvotes = [];
+    if (!complaint.downvotes) complaint.downvotes = [];
+
+    // remove from downvotes
+    complaint.downvotes = complaint.downvotes.filter(
+      vote => vote.toString() !== userId
+    );
+
+    // toggle upvote
+    const alreadyUpvoted = complaint.upvotes.some(
+      vote => vote.toString() === userId
+    );
+
+    if (alreadyUpvoted) {
+      complaint.upvotes = complaint.upvotes.filter(
+        vote => vote.toString() !== userId
+      );
+    } else {
+      complaint.upvotes.push(userId);
+    }
+
+    await complaint.save();
+
+    res.status(200).json({
+      success: true,
+      complaint
+    });
+
+  } catch (error) {
+
+    console.error("UPVOTE ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
 };
 
-
-
-// Downvote complaint
 export const downvoteComplaint = async (req, res) => {
-    try {
+  try {
 
-        const { id } = req.params;
+    const { id } = req.params;
+    const userId = req.user.id;
 
-        const complaint = await Complaint.findById(id);
+    const complaint = await Complaint.findById(id);
 
-        if (!complaint) {
-            return res.status(404).json({
-                success: false,
-                message: "Complaint not found"
-            });
-        }
-
-        complaint.downvotes += 1;
-
-        await complaint.save();
-
-        res.status(200).json({
-            success: true,
-            message: "Complaint downvoted successfully",
-            complaint
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: "Error downvoting complaint",
-            error: error.message
-        });
-
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: "Complaint not found"
+      });
     }
+
+    if (!complaint.upvotes) complaint.upvotes = [];
+    if (!complaint.downvotes) complaint.downvotes = [];
+
+    // remove from upvotes
+    complaint.upvotes = complaint.upvotes.filter(
+      vote => vote.toString() !== userId
+    );
+
+    // toggle downvote
+    const alreadyDownvoted = complaint.downvotes.some(
+      vote => vote.toString() === userId
+    );
+
+    if (alreadyDownvoted) {
+      complaint.downvotes = complaint.downvotes.filter(
+        vote => vote.toString() !== userId
+      );
+    } else {
+      complaint.downvotes.push(userId);
+    }
+
+    await complaint.save();
+
+    res.status(200).json({
+      success: true,
+      complaint
+    });
+
+  } catch (error) {
+
+    console.error("DOWNVOTE ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
 };
+

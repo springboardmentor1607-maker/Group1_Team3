@@ -91,6 +91,9 @@ const ViewComplaints = () => {
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeVote, setActiveVote]= useState("");
+  const [voteEffect, setVoteEffect] = useState("");
+
 
   const user = useMemo(parseStoredUser, []);
   const currentUserId = String(user?._id || user?.id || "");
@@ -109,7 +112,8 @@ const ViewComplaints = () => {
         setLoading(true);
         setError("");
 
-        const response = await API.get("/complaints", {
+        const endpoint = isPrivilegedViewer ? "/complaints" : "/complaints/my-complaints";
+        const response = await API.get(endpoint, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -218,7 +222,8 @@ const ViewComplaints = () => {
     if (!token) return;
 
     try {
-      const response = await API.get("/complaints", {
+      const endpoint = isPrivilegedViewer ? "/complaints" : "/complaints/my-complaints";
+      const response = await API.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -375,8 +380,8 @@ const ViewComplaints = () => {
   const renderComplaintCard = (complaint) => {
     const priorityColor = priorityColors[complaint.priority] || "#6b7280";
     const statusColor = statusColors[complaint.status] || "#4b5563";
-    const upvotes = Number(complaint.upvotes || 0);
-    const downvotes = Number(complaint.downvotes || 0);
+    const upvotes = complaint.upvotes?.length || 0;
+    const downvotes = complaint.downvotes?.length || 0;
     const commentsCount = commentCounts[complaint.id] || 0;
 
     return (
@@ -417,9 +422,12 @@ const ViewComplaints = () => {
             <div className="footer-actions">
               <button
                 type="button"
-                className="action-btn btn-vote"
+                className={`action-btn btn-vote ${activeVote === complaint.id + "up" ? "vote-animate": ""}`}
                 onClick={(event) => {
                   event.stopPropagation();
+                  setActiveVote(complaint.id+ "up");
+                  setVoteEffect("up");
+                  setTimeout(()=>setVoteEffect(""),600);
                   handleVote(complaint.id, "up");
                 }}
               >
@@ -427,13 +435,16 @@ const ViewComplaints = () => {
               </button>
               <button
                 type="button"
-                className="action-btn btn-vote"
+                className={`action-btn btn-vote ${activeVote === complaint.id + "down" ? "vote-animate": ""}`}
                 onClick={(event) => {
                   event.stopPropagation();
+                  setActiveVote(complaint.id + "down");
+                  setVoteEffect("down");
+                  setTimeout(() => setVoteEffect(""),600);
                   handleVote(complaint.id, "down");
                 }}
               >
-                <i className="bi bi-hand-thumbs-down" /> {downvotes}
+                <i className="bi bi-hand-thumbs-down"/> {downvotes}
               </button>
               <button
                 type="button"
@@ -701,6 +712,18 @@ const ViewComplaints = () => {
           </div>
         </div>
       ) : null}
+      {voteEffect && (
+  <div className={`vote-screen ${voteEffect}`}>
+    <i
+      className={`bi ${
+        voteEffect === "up"
+          ? "bi-hand-thumbs-up-fill"
+          : "bi-hand-thumbs-down-fill"
+      }`}
+    ></i>
+  </div>
+)}
+
     </div>
   );
 };
