@@ -24,7 +24,7 @@ router.post("/:id/upvote", verifyToken, upvoteComplaint);
 router.post("/:id/downvote", verifyToken, downvoteComplaint);
 
 // Admin routes
-router.get("/", verifyToken, authorizeRoles("admin","volunteer"), getAllComplaints);
+router.get("/", verifyToken, getAllComplaints);
 router.patch("/:id/status", verifyToken, authorizeRoles("admin"), updateComplaintStatus);
 router.delete("/:id", verifyToken, authorizeRoles("admin"), deleteComplaint);
 

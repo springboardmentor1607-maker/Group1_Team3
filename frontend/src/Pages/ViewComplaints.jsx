@@ -112,7 +112,7 @@ const ViewComplaints = () => {
         setLoading(true);
         setError("");
 
-        const endpoint = isPrivilegedViewer ? "/complaints" : "/complaints/my-complaints";
+        const endpoint = "/complaints";
         const response = await API.get(endpoint, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -222,7 +222,7 @@ const ViewComplaints = () => {
     if (!token) return;
 
     try {
-      const endpoint = isPrivilegedViewer ? "/complaints" : "/complaints/my-complaints";
+      const endpoint = "/complaints";
       const response = await API.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
