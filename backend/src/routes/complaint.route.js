@@ -12,12 +12,14 @@ import {
 import { verifyToken } from '../middleware/auth.middleware.js';
 import { authorizeRoles } from '../middleware/roleCheck.middleware.js';
 import upload from '../middleware/upload.js';
+import { testEmail } from '../controllers/complaint.controller.js';
 
 const router = express.Router();
 
 // User routes
 router.post("/create", verifyToken, upload.array("images",3), createComplaint);
 router.get("/my-complaints", verifyToken, getUserComplaints);
+router.get("/test-email", testEmail);
 router.get("/", verifyToken, getAllComplaints);
 router.get("/:id", verifyToken, getComplaintById);
 router.post("/:id/upvote", verifyToken, upvoteComplaint);
@@ -25,7 +27,7 @@ router.post("/:id/downvote", verifyToken, downvoteComplaint);
 
 // Admin routes
 router.get("/", verifyToken, getAllComplaints);
-router.patch("/:id/status", verifyToken, authorizeRoles("admin"), updateComplaintStatus);
+router.patch("/:id/status", verifyToken,updateComplaintStatus);
 router.delete("/:id", verifyToken, authorizeRoles("admin"), deleteComplaint);
 
 export default router;

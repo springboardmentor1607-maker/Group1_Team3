@@ -376,6 +376,26 @@ const ViewComplaints = () => {
       Swal.fire("Error", "Comment failed", "error");
     }
   };
+  const updateComplaintStatus = async (complaintId, data) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    await API.patch(
+      `/complaints/${complaintId}/status`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    console.log("✅ Status updated");
+
+    await refreshComplaints(); // refresh UI
+
+  } catch (err) {
+    console.error("❌ Error updating status:", err);
+  }
+};
 
   const renderComplaintCard = (complaint) => {
     const priorityColor = priorityColors[complaint.priority] || "#6b7280";
@@ -456,6 +476,18 @@ const ViewComplaints = () => {
               >
                 <i className="bi bi-chat-left-text" /> {commentsCount}
               </button>
+              {isPrivilegedViewer && (
+                <button
+                  type="button"
+                  className="action-btn btn-update"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    updateComplaintStatus(complaint.id,{status:"assigned"});
+                  }}
+                >
+                  Assign
+                </button>
+              )}
               <button
                 type="button"
                 className="action-btn btn-view"

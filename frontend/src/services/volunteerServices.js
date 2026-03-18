@@ -41,8 +41,8 @@ export const getVolunteerComplaints = async (status = null) => {
 export const updateComplaintStatus = async (complaintId, status) => {
   const token = localStorage.getItem("token");
 
-  const response = await API.put(
-    `/volunteer/complaints/${complaintId}/status`,
+  const response = await API.patch(
+    `/complaints/${complaintId}/status`,
     { status },
     {
       headers: {

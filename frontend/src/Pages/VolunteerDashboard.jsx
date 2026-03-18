@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getVolunteerComplaints } from "../services/volunteerServices";
 import "./VolunteerDashboard.css";
+import { updateComplaintStatus } from "../services/complaintServices";
 
 const VolunteerDashboard = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const VolunteerDashboard = () => {
 
     fetchComplaints();
   }, []);
+  
 
   /* -------- Normalize Function -------- */
   const normalize = (value) =>
@@ -126,7 +128,6 @@ const VolunteerDashboard = () => {
           <div
             key={complaint._id}
             className="vd-card"
-            onClick={() => navigate(`/complaint/${complaint._id}`)}
           >
             <h3>{complaint.title}</h3>
             <p>{complaint.description?.slice(0, 80)}...</p>
@@ -135,6 +136,35 @@ const VolunteerDashboard = () => {
               <span>{complaint.priority}</span>
               <span>{complaint.status}</span>
             </div>
+            <div className="vd-actions">
+              <button
+              onClick={async(e) => {
+                e.stopPropagation();
+                console.log("BUTTON CLICKED");
+                try{
+                await updateComplaintStatus(complaint._id, {status:"in_progress"});
+                console.log("API CALLING");
+                }catch(err){
+                  console.error(err);
+                }
+              }}
+            >
+              Start Work
+            </button>
+            <button
+            onClick={async(e) => {
+              e.stopPropagation();
+              try{
+              await updateComplaintStatus(complaint._id,{status: "resolved"});
+              console.log("API CALLED");
+              }catch(err){
+                console.error(err);
+              }
+             }}
+             >
+              Mark Resolved
+            </button>
+          </div>
           </div>
         ))}
       </div>

@@ -4,15 +4,9 @@ import jwt from "jsonwebtoken"
 
 
 export const signup = async (req, res) => {
-
-
-
-    
-    
-
     try {
-
-
+        console.log("SIGNUP API HIT");
+        console.log("BODY:",req.body);
         const { name, email, password, role, mobile } = req.body;
         const existingUser = await Users.findOne({ email });
 
@@ -27,6 +21,7 @@ export const signup = async (req, res) => {
             role: role || "user",
             mobile: mobile || null
         })
+        console.log("USER SAVED:",user);
 
         res.status(201).json({
             message: "User registered Successfully",
