@@ -1,4 +1,5 @@
 import Complaint from "../models/complaint.model.js"
+import mongoose from "mongoose";
 
 export const getVolunteerComplaints = async (req,res)=>{
     try {
@@ -99,3 +100,98 @@ export const updateComplaintStatus = async (req,res)=>{
         
     }
 }
+
+export const getVolunteerDashboardStats = async (req, res) => {
+  try {
+    const volunteerId = req.user.id;
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [
+      assignedCount,
+      inProgressCount,
+      resolvedCount,
+      resolvedToday
+    ] = await Promise.all([
+      Complaint.countDocuments({
+        assigned_to: volunteerId,
+        status: "assigned"
+      }),
+
+      Complaint.countDocuments({
+        assigned_to: volunteerId,
+        status: "in_progress"
+      }),
+
+      Complaint.countDocuments({
+        assigned_to: volunteerId,
+        status: "resolved"
+      }),
+
+      Complaint.countDocuments({
+        assigned_to: volunteerId,
+        status: "resolved",
+        updated_at: { $gte: startOfToday }
+      })
+    ]);
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        assigned: assignedCount,
+        in_progress: inProgressCount,
+        resolved: resolvedCount,
+        resolved_today: resolvedToday
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch dashboard stats",
+      error: error.message
+    });
+  }
+};
+
+
+
+export const getWeeklyResolvedStats = async (req, res) => {
+  try {
+    const volunteerId = new mongoose.Types.ObjectId(req.user.id);
+
+    const data = await Complaint.aggregate([
+      {
+        $match: {
+          assigned_to: volunteerId,
+          status: "resolved",
+          updated_at: { $exists: true } 
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%U",
+              date: "$updated_at"
+            }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { "_id": 1 }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
