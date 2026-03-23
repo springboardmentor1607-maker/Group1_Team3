@@ -34,7 +34,7 @@ import {
     { title: "My Complaints", url: "/volunteer/complaints", icon: ClipboardList },
     { title: "In Progress", url: "/volunteer/in-progress", icon: Clock },
     { title: "Resolved", url: "/volunteer/resolved", icon: CheckCircle2 },
-    { title: "Profile", url: "/volunteer/profile", icon: User },
+    { title: "Profile", url: "/profile", icon: User },
   ];
   
   export function VolunteerSidebar() {
