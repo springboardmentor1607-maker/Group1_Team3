@@ -17,6 +17,7 @@ import ManageComplaint from "./Pages/ManageComplaint";
 import VolunteerLayout from "./components/volunteer/VolunteerLayout";
 import DashboardOverview from "./Pages/volunteer/DashboardOverview";
 import MyComplaints from "./Pages/volunteer/MyComplaints";
+import ProfilePage from "./Pages/ProfilePage";
 
 
 
@@ -51,20 +52,13 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+        
 
         <Route
           path="/profile"
           element={
             <ProtectedRoute>
-              <Profile />
+              <ProfilePage/>
             </ProtectedRoute>
           }
         />
