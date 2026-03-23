@@ -28,7 +28,7 @@ import {
 import { format } from "date-fns";
 import ComplaintDetailModal from "@/components/volunteer/ComplaintDetailModal";
 import { toast } from "sonner";
-import { getVolunteerComplaints, updateComplaintStatus } from "@/services/volunteerServices";
+import { getVolunteerComplaints, updateComplaintStatus, getDashboardStats, getWeeklyStats } from "@/services/volunteerServices";
 
 const issueTypeLabels = {
   water_leak: "Water Leak",
@@ -60,15 +60,25 @@ const PIE_COLORS = [
 
 export default function DashboardOverview() {
   const [complaints, setComplaints] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [complaintsLoading, setComplaintsLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    resolved: 0,
+  });
+
+  const [barData,setBarData] = useState([]);
+  const [barLoading,setBarLoading] = useState(true);
 
   // Fetch complaints from backend
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        setLoading(true);
+        setComplaintsLoading(true);
         setError(null);
         console.log("Fetching volunteer complaints for dashboard");
         const response = await getVolunteerComplaints();
@@ -80,42 +90,79 @@ export default function DashboardOverview() {
         setError(errorMsg);
         toast.error(errorMsg);
       } finally {
-        setLoading(false);
+        setComplaintsLoading(false);
       }
     };
 
     fetchComplaints();
   }, []);
 
-  const stats = useMemo(() => {
-    const total = complaints.length;
-    const pending = complaints.filter(
-      (c) => c.status === "assigned" || c.status === "received"
-    ).length;
+//fetch pie chart data from backend
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+  
+        const res = await getDashboardStats();
+  
+        const data = res.stats;
+  
+        setStats({
+          total: data.assigned + data.in_progress + data.resolved,
+          pending: data.assigned,
+          inProgress: data.in_progress,
+          resolved: data.resolved,
+        });
+  
+      } catch (err) {
+        toast.error("Failed to load stats");
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+  
+    fetchStats();
+  }, []);
 
-    const inProgress = complaints.filter(
-      (c) => c.status === "in_progress" || c.status === "in_review"
-    ).length;
 
-    const resolved = complaints.filter(
-      (c) => c.status === "resolved"
-    ).length;
 
-    return { total, pending, inProgress, resolved };
-  }, [complaints]);
+//fetch bar chart data from backend
+  useEffect(() => {
+    const fetchWeeklyStats = async () => {
+      try {
+        setBarLoading(true);
+  
+        const res = await getWeeklyStats();
+  
+        console.log("Weekly API:", res);
+  
+        // Transform backend data → chart format
+        const formatted = res.data.map((item) => ({
+          name: item._id,     // e.g. "2026-12" or "18 Mar"
+          resolved: item.count,
+        }));
+  
+        setBarData(formatted);
+  
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load chart data");
+      } finally {
+        setBarLoading(false);
+      }
+    };
+  
+    fetchWeeklyStats();
+  }, []);
 
-  const barData = [
-    { name: "Week 1", resolved: 3 },
-    { name: "Week 2", resolved: 5 },
-    { name: "Week 3", resolved: 2 },
-    { name: "Week 4", resolved: 7 },
-  ];
+
+
+
 
   const pieData = [
-    { name: "Received", value: stats.pending, fill: PIE_COLORS[0] },
-    { name: "Assigned", value: Math.max(1, stats.pending), fill: PIE_COLORS[1] },
-    { name: "In Progress", value: Math.max(1, stats.inProgress), fill: PIE_COLORS[2] },
-    { name: "Resolved", value: Math.max(1, stats.resolved), fill: PIE_COLORS[3] },
+    { name: "Assigned", value: stats.pending, fill: PIE_COLORS[0] },
+    { name: "In Progress", value: stats.inProgress, fill: PIE_COLORS[1] },
+    { name: "Resolved", value: stats.resolved, fill: PIE_COLORS[2] },
   ];
 
   const barConfig = {
@@ -151,7 +198,7 @@ export default function DashboardOverview() {
     }
   };
 
-  if (loading) {
+  if (complaintsLoading || statsLoading) {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="text-muted-foreground">Loading dashboard...</div>
@@ -235,15 +282,29 @@ export default function DashboardOverview() {
               <CardTitle className="text-base">Monthly Resolved Complaints</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={barConfig} className="h-[250px] w-full">
-                <BarChart data={barData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="resolved" fill="hsl(152, 60%, 42%)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ChartContainer>
+              {barLoading ? (
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                  Loading chart...
+                </div>
+              ) : barData.length === 0 ? (
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                  No data available
+                </div>
+              ) : (
+                <ChartContainer config={barConfig} className="h-[250px] w-full">
+                  <BarChart data={barData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="resolved"
+                      fill="hsl(152, 60%, 42%)"
+                      radius={[6, 6, 0, 0]}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              )}
             </CardContent>
           </Card>
         </motion.div>
