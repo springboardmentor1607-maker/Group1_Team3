@@ -13,6 +13,7 @@ const ManageComplaint = () => {
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [stateFilter, setStateFilter]= useState("");
 
   const token = localStorage.getItem("token");
 
@@ -77,6 +78,22 @@ const ManageComplaint = () => {
     return "bg-green-100 text-green-700 border border-green-200";
   };
 
+  const states = [...new Set(
+  complaints
+    .map(c => {
+      if (!c.address) return null;
+
+      // handle both formats
+      if (c.address.includes(",")) {
+        const parts = c.address.split(",");
+        return parts[parts.length - 1].trim();
+      }
+
+      return c.address.trim();
+    })
+    .filter(Boolean)
+)];
+
   const filteredComplaints = complaints
     .filter((c) => {
       if (filter === "assigned") return c.assigned_to;
@@ -88,7 +105,11 @@ const ManageComplaint = () => {
     })
     .filter((c) =>
       c.title.toLowerCase().includes(search.toLowerCase())
-    );
+  )
+  .filter((c) => stateFilter === "" || c.address?.toLowerCase().includes(stateFilter.toLowerCase()));
+
+  console.log("complaints:",complaints);
+  console.log("states:", states);
 
   if (loading) {
     return (
@@ -159,24 +180,29 @@ const ManageComplaint = () => {
             />
           </div>
 
-          <div className="flex gap-2">
-            {["all", "assigned", "unassigned", "high", "medium", "low"].map(
-              (item) => (
-                <button
-                  key={item}
-                  onClick={() => setFilter(item)}
-                  className={`px-4 py-2 rounded-full text-sm capitalize ${
-                    filter === item
+          <div className="flex gap-2 items-center flex-wrap">
+            {/* State Dropdown FIRST */}
+            <select
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value)}
+            className="px-4 py-2 rounded-full border text-gray-600 bg-white"
+            >
+              <option value="">All States</option>
+               {states.length > 0 &&
+               states.map((state, index) => (
+               <option key={index} value={state}>{state}</option>))}</select>
+                {/* Existing Filters */}
+                {["all", "assigned", "unassigned", "high", "medium", "low"].map(
+                   (item) => (
+                   <button
+                   key={item}
+                   onClick={() => setFilter(item)}
+                    className={`px-4 py-2 rounded-full text-sm capitalize ${
+                      filter === item
                       ? "bg-blue-600 text-white"
-                      : "bg-white border text-gray-600"
-                  }`}
-                >
-                  {item}
-                </button>
-              )
-            )}
-          </div>
-        </div>
+                      : "bg-white border text-gray-600" }`}> {item}</button> ) )}
+                      </div>
+                      </div>
 
         {/* Complaint Cards */}
         <div className="space-y-6">

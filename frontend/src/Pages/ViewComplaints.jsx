@@ -93,6 +93,7 @@ const ViewComplaints = () => {
   const [error, setError] = useState("");
   const [activeVote, setActiveVote]= useState("");
   const [voteEffect, setVoteEffect] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
 
 
   const user = useMemo(parseStoredUser, []);
@@ -112,7 +113,7 @@ const ViewComplaints = () => {
         setLoading(true);
         setError("");
 
-        const endpoint = "/complaints";
+        const endpoint = `/complaints${stateFilter ? `?state=${encodeURIComponent(stateFilter)}` : ""}`;
         const response = await API.get(endpoint, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -128,7 +129,7 @@ const ViewComplaints = () => {
     };
 
     fetchComplaints();
-  }, [isPrivilegedViewer, user]);
+  }, [stateFilter,isPrivilegedViewer, user]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -560,6 +561,20 @@ const ViewComplaints = () => {
                 <option value="priority">Priority</option>
                 <option value="status">Status</option>
                 <option value="title">Title</option>
+              </select>
+            </label>
+            <label className="filter-group">
+              <span>State</span>
+              <select
+                className="modern-select"
+                value={stateFilter}
+                onChange={(event) => setStateFilter(event.target.value)}
+              >
+                <option value="all">All States</option>
+                {states.map((state,index)=> (
+                    <option key={index} value={state}>
+                      {state}</option>
+                ))}
               </select>
             </label>
           </div>
