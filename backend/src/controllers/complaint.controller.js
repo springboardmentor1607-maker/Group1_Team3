@@ -142,12 +142,18 @@ export const getAllComplaints = async (req, res) => {
   try {
     const role = req.user.role;
     const userId = req.user.id;
+    const {state} = req.query;
+
+    let filter = {};
+    if(state){
+      filter.address = { $regex: state, $options: "i" };
+    }
 
     let complaints;
 
     // Volunteer → only assigned complaints
     if (role === "volunteer") {
-      complaints = await Complaint.find({ assigned_to: userId })
+      complaints = await Complaint.find({ assigned_to: userId, ...filter })
         .populate("user_id", "name email")
         .populate("assigned_to", "name email")
         .sort({ created_at: -1 });
@@ -155,7 +161,7 @@ export const getAllComplaints = async (req, res) => {
 
     // Admin + normal user → all complaints
     else {
-      complaints = await Complaint.find()
+      complaints = await Complaint.find(filter)
         .populate("user_id", "name email")
         .populate("assigned_to", "name email")
         .sort({ created_at: -1 });
