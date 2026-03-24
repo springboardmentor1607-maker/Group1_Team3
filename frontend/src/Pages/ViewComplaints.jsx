@@ -94,6 +94,7 @@ const ViewComplaints = () => {
   const [activeVote, setActiveVote]= useState("");
   const [voteEffect, setVoteEffect] = useState("");
   const [stateFilter, setStateFilter] = useState("");
+  const states= [...new Set(complaints.map(c => c.addresss))];
 
 
   const user = useMemo(parseStoredUser, []);
