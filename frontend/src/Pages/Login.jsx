@@ -25,7 +25,7 @@ function Login() {
       localStorage.setItem("user", JSON.stringify(user));
       alert("Login Successful");
       if (user.role === "admin") {
-        navigate("/admin-dashboard");
+        navigate("/admin/dashboard");
       } else if (user.role === "volunteer") {
         navigate("/volunteer");
       } else {

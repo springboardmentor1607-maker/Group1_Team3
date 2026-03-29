@@ -94,7 +94,14 @@ const ViewComplaints = () => {
   const [activeVote, setActiveVote]= useState("");
   const [voteEffect, setVoteEffect] = useState("");
   const [stateFilter, setStateFilter] = useState("");
-  const states= [...new Set(complaints.map(c => c.addresss))];
+
+  const states = [
+    "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Delhi",
+    "Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala",
+    "Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland",
+    "Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura",
+    "Uttar Pradesh","Uttarakhand","West Bengal"
+  ];
 
 
   const user = useMemo(parseStoredUser, []);
@@ -114,7 +121,7 @@ const ViewComplaints = () => {
         setLoading(true);
         setError("");
 
-        const endpoint = `/complaints${stateFilter ? `?state=${encodeURIComponent(stateFilter)}` : ""}`;
+        const endpoint = `/complaints`;
         const response = await API.get(endpoint, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -160,38 +167,34 @@ const ViewComplaints = () => {
     fetchCommentCounts();
   }, [complaints]);
 
-  const filteredComplaints = useMemo(() => {
-    const next = complaints.filter((complaint) => {
-      const matchesPriority =
-        filterPriority === "all" || complaint.priority === filterPriority;
-      const matchesStatus = filterStatus === "all" || complaint.status === filterStatus;
-      return matchesPriority && matchesStatus;
-    });
+ const filteredComplaints = useMemo(() => {
+  const next = complaints.filter((complaint) => {
+    const matchesPriority =
+      filterPriority === "all" || complaint.priority === filterPriority;
 
-    next.sort((a, b) => {
-      if (sortBy === "priority") {
-        return (
-          (priorityRank[a.priority] ?? 99) - (priorityRank[b.priority] ?? 99) ||
-          new Date(b.createdAt) - new Date(a.createdAt)
-        );
-      }
+    const matchesStatus =
+      filterStatus === "all" || complaint.status === filterStatus;
+    const matchesState =
+      stateFilter === "" ||
+      complaint.address?.toLowerCase().includes(stateFilter.toLowerCase());
 
-      if (sortBy === "status") {
-        return (
-          (statusRank[a.status] ?? 99) - (statusRank[b.status] ?? 99) ||
-          new Date(b.createdAt) - new Date(a.createdAt)
-        );
-      }
+    return matchesPriority && matchesStatus && matchesState;
+  });
 
-      if (sortBy === "title") {
-        return a.title.localeCompare(b.title);
-      }
+  next.sort((a, b) => {
+    if(sortBy === "priority"){
+      return (priorityRank[a.priority] ?? 99) - (priorityRank[b.priority] ?? 99);
+    }
 
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
+    if(sortBy === "status"){
+      return (statusRank[a.status] ?? 99) - (statusRank[b.status] ?? 99);
 
-    return next;
-  }, [complaints, filterPriority, filterStatus, sortBy]);
+    }
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  return next;
+}, [complaints, filterPriority, filterStatus, stateFilter, sortBy]);
 
   const stats = useMemo(
     () => ({
@@ -571,7 +574,7 @@ const ViewComplaints = () => {
                 value={stateFilter}
                 onChange={(event) => setStateFilter(event.target.value)}
               >
-                <option value="all">All States</option>
+                <option value="">All States</option>
                 {states.map((state,index)=> (
                     <option key={index} value={state}>
                       {state}</option>

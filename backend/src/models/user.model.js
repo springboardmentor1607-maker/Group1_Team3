@@ -23,6 +23,9 @@ const userSchema = new mongoose.Schema(
             type: String,
             require: true,
         },
+        state:{
+            type:String,
+        },
         location: {
             type: String,
             default: null,
