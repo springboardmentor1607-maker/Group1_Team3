@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -57,18 +58,26 @@ const statusOrder = ["received", "assigned", "in_progress", "resolved"];
 export default function ComplaintDetailModal({
   complaint,
   onClose,
-  onStatusUpdate,
+  onStatusUpdate, // now used for report submission
 }) {
   const [newStatus, setNewStatus] = useState(complaint.status);
   const [remarks, setRemarks] = useState("");
+  const [files, setFiles] = useState([]);
   const [lightboxIdx, setLightboxIdx] = useState(null);
 
   const currentIdx = statusOrder.indexOf(complaint.status);
 
-  const handleSubmit = () => {
-    // Backend only accepts status, not remarks
-    onStatusUpdate(complaint._id, newStatus);
-  };
+const handleSubmit = () => {
+  onStatusUpdate(
+    complaint._id,
+    newStatus,
+    {
+      remark: remarks,
+      proof: files[0], // send single file (or adjust backend for multiple)
+    }
+  );
+};
+  const showReportFields = newStatus === "resolved";
 
   return (
     <motion.div
@@ -176,9 +185,6 @@ export default function ComplaintDetailModal({
                       src={img}
                       alt=""
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = "/placeholder.svg";
-                      }}
                     />
                   </button>
                 ))}
@@ -231,7 +237,9 @@ export default function ComplaintDetailModal({
           {complaint.status !== "resolved" && (
             <div className="border-t pt-5">
               <h3 className="text-sm font-semibold mb-3">Update Status</h3>
+
               <div className="space-y-3">
+                {/* Status Select */}
                 <Select value={newStatus} onValueChange={setNewStatus}>
                   <SelectTrigger>
                     <SelectValue />
@@ -249,17 +257,40 @@ export default function ComplaintDetailModal({
                   </SelectContent>
                 </Select>
 
-                <Textarea
-                  placeholder="Add remarks (optional)..."
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  rows={3}
-                />
+                {showReportFields && (
+                    <>
+                      {/* Remarks */}
+                      <Textarea
+                        placeholder="Add remarks..."
+                        value={remarks}
+                        onChange={(e) => setRemarks(e.target.value)}
+                        rows={3}
+                      />
 
-                <Button 
-                  onClick={handleSubmit} 
+                      {/* Proof Upload */}
+                      <div>
+                        <label className="text-xs text-muted-foreground">
+                          Upload Proof
+                        </label>
+                        <Input
+                          type="file"
+                          multiple
+                          onChange={(e) => setFiles([...e.target.files])}
+                        />
+                        {files.length > 0 && (
+                          <p className="text-[10px] mt-1 text-muted-foreground">
+                            {files.length} file(s) selected
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                {/* Submit */}
+                <Button
+                  onClick={handleSubmit}
                   className="w-full"
-                  disabled={newStatus === complaint.status}
+                  disabled={newStatus === complaint.status && files.length === 0 && !remarks}
                 >
                   <ArrowRight className="w-4 h-4 mr-2" />
                   Submit Update

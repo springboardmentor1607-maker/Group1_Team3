@@ -18,6 +18,7 @@ import VolunteerLayout from "./components/volunteer/VolunteerLayout";
 import DashboardOverview from "./Pages/volunteer/DashboardOverview";
 import MyComplaints from "./Pages/volunteer/MyComplaints";
 import ProfilePage from "./Pages/ProfilePage";
+import ComplaintReport from "./Pages/ComplaintReport";
 import AdminLayout from "./components/AdminLayout";
 
 
@@ -26,6 +27,10 @@ function AppContent() {
   const location = useLocation();
   const hideNavbarRoutes = [
     "/dashboard",
+    "/admin-dashboard",
+    "/manage-complaints",
+    "/volunteer",
+    "/admin/report",
     "/admin",
     "/volunteer"
   ];
@@ -71,7 +76,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-
+        
         <Route path="/manage-complaints" element = {<ProtectedRoute><ManageComplaint/></ProtectedRoute>} />
 
         {/* ✅ NEW ROUTES ADDED BELOW */}
@@ -104,6 +109,7 @@ function AppContent() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="manage-complaints" element={<ManageComplaint />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="report" element={<ComplaintReport />} />
 
         </Route>
 

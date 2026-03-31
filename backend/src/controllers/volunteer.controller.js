@@ -1,3 +1,4 @@
+import cloudinary from "../config/cloudinary.js";
 import Complaint from "../models/complaint.model.js"
 import mongoose from "mongoose";
 
@@ -34,72 +35,108 @@ export const getVolunteerComplaints = async (req,res)=>{
 }
 
 
-export const updateComplaintStatus = async (req,res)=>{
-    try {
-        const volunteerId = req.user.id;
-        const complaintId = req.params.id;
-        const { status } = req.body;
+export const updateComplaintStatus = async (req, res) => {
+  try {
+    const volunteerId = req.user.id;
+    const complaintId = req.params.id;
+    const { status, remarks } = req.body;
 
-        const allowedStatus = ["in_progress","resolved"];
+    const allowedStatus = ["in_progress", "resolved"];
 
-        if(!allowedStatus.includes(status)){
-            return res.status(400).json({
-                success : false,
-                message : "invalid status value"
-            })
-        }
-
-        const complaint = await Complaint.findOne({
-            _id : complaintId,
-            assigned_to : volunteerId
-        });
-
-        if(!complaint){
-            return res.status(404).json({
-                success : false,
-                message : "Complaint not found or not assigned to you"
-            })
-        }
-
-        if(complaint.status === "resolved"){
-            return res.status(400).json({
-                success : false,
-                message : "Resolve complaints cannot be updated"
-            })
-        }
-
-        if(complaint.status === "assigned" && status !== "in_progress"){
-            return res.status(400).json({
-                success : false,
-                message : "Status must change from assigned to in_progress first"
-            })
-        }
-
-        if(complaint.status === "in_progress" && status !== "resolved"){
-            return res.status(400).json({
-                success : false,
-                message : "Status must change from in_progress to resolved"
-            })
-        }
-
-        complaint.status = status;
-        await complaint.save();
-
-        res.status(200).json({
-            success : true,
-            message : "Complaint Status updated successfully",
-            complaint
-        })
-
-    } catch (error) {
-        res.status(500).json({
-            success : false,
-            message : "Failed to update complaint status",
-            error : error.message
-        })
-        
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status value",
+      });
     }
-}
+
+    const complaint = await Complaint.findOne({
+      _id: complaintId,
+      assigned_to: volunteerId,
+    });
+
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: "Complaint not found or not assigned to you",
+      });
+    }
+
+    if (complaint.status === "resolved") {
+      return res.status(400).json({
+        success: false,
+        message: "Resolved complaint cannot be updated",
+      });
+    }
+
+    // Flow validation
+    if (complaint.status === "assigned" && status !== "in_progress") {
+      return res.status(400).json({
+        success: false,
+        message: "Status must change from assigned to in_progress first",
+      });
+    }
+
+    if (complaint.status === "in_progress" && status !== "resolved") {
+      return res.status(400).json({
+        success: false,
+        message: "Status must change from in_progress to resolved",
+      });
+    }
+
+    // ✅ Update status
+    complaint.status = status;
+
+    // ✅ When resolving → require remark + proof
+    if (status === "resolved") {
+      if (!remarks) {
+        return res.status(400).json({
+          success: false,
+          message: "Remarks are required when resolving a complaint",
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Proof image is required when resolving a complaint",
+        });
+      }
+
+      // ✅ Upload to Cloudinary
+      const uploadResult = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { folder: "complaint_proofs" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          )
+          .end(req.file.buffer);
+      });
+
+      // ✅ Save data
+      complaint.resolvedRemarks = remarks;
+      complaint.resolvedProofImages = uploadResult.secure_url;
+      complaint.resolvedAt = new Date();
+    }
+
+    await complaint.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Complaint status updated successfully",
+      complaint,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update complaint status",
+      error: error.message,
+    });
+  }
+};
 
 export const getVolunteerDashboardStats = async (req, res) => {
   try {

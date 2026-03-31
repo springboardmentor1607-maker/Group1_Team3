@@ -27,7 +27,22 @@ import {
   import { Avatar, AvatarFallback } from "@/components/ui/avatar";
   import { volunteers } from "@/data/mockData";
   
-  const currentVolunteer = volunteers[0];
+      function getInitials(name) {
+      if (!name) return "";
+
+      return name
+        .split(" ")             
+        .map(word => word[0])   
+        .join("")               
+        .toUpperCase();
+    }
+
+
+  const currentVolunteer = JSON.parse(localStorage.getItem("user"));
+  const name = currentVolunteer ? currentVolunteer.name : "Volunteer";
+  const avatar = getInitials(name);
+  console.log("avatar:", avatar);
+  
   
   const mainNav = [
     { title: "Dashboard", url: "/volunteer", icon: LayoutDashboard },
@@ -99,7 +114,7 @@ import {
             <div className="flex items-center gap-3">
               <Avatar className="w-8 h-8">
                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                  {currentVolunteer.avatar}
+                  {avatar}
                 </AvatarFallback>
               </Avatar>
   

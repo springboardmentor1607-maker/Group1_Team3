@@ -34,7 +34,7 @@ function AdminLayout() {
           👥 Users
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
+        <div style={{ marginBottom: "15px", cursor: "pointer" }} onClick={() => navigate("/admin/report")}>
           📈 Reports
         </div>
 

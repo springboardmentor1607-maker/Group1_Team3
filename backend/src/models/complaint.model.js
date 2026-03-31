@@ -47,6 +47,20 @@ const complaintSchema = new mongoose.Schema({
         ref : "User",
     },
 
+    resolvedRemarks : {
+        type : String,
+        default : "",
+    },
+
+    resolvedProofImages : {
+        type : [String],
+        default : [],
+    },
+
+    resolvedAt : {
+        type : Date,
+    },
+
     upvotes:{
         type: [mongoose.Schema.Types.ObjectId],
         ref: "User",

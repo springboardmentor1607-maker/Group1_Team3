@@ -111,26 +111,37 @@ export default function MyComplaints({ statusFilter }) {
     return result;
   }, [complaints, search, priority, status, sort]);
 
-  const handleStatusUpdate = async (id, newStatus) => {
-    try {
-      const response = await updateComplaintStatus(id, newStatus);
-      
-      // Update local state
-      setComplaints((prev) =>
-        prev.map((c) =>
-          c._id === id
-            ? { ...c, status: newStatus, updated_at: new Date().toISOString() }
-            : c
-        )
-      );
+const handleStatusUpdate = async (id, newStatus, extraData = {}) => {
+  try {
+    const payload = {
+      status: newStatus,
+      ...(extraData.remark && { remarks: extraData.remark }), // ✅ FIX
+      ...(extraData.proof && { proof: extraData.proof }),
+    };
+    console.log("sending status : ", payload.status)
+    const response = await updateComplaintStatus(id, payload);
 
-      toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
-      setSelectedComplaint(null);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error(error.response?.data?.message || "Failed to update status");
-    }
-  };
+    setComplaints((prev) =>
+      prev.map((c) =>
+        c._id === id
+          ? {
+              ...c,
+              status: newStatus,
+              updated_at: new Date().toISOString(),
+              ...(payload.remarks && { resolvedRemarks: payload.remarks }),
+              ...(payload.proof && { resolvedProof: payload.proof }),
+            }
+          : c
+      )
+    );
+
+    toast.success(`Status updated to ${newStatus.replace("_", " ")}`);
+    setSelectedComplaint(null);
+  } catch (error) {
+    console.error("Error updating status:", error.response?.data);
+    toast.error(error.response?.data?.message || "Failed to update status");
+  }
+};
 
   if (loading) {
     return (
