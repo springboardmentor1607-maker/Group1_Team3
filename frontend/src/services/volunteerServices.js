@@ -41,18 +41,33 @@ export const getVolunteerComplaints = async (status = null) => {
  * @param {string} status - New status (in_progress or resolved)
  * @returns {Promise} API response with updated complaint
  */
-export const updateComplaintStatus = async (complaintId, status) => {
+export const updateComplaintStatus = async (complaintId, data) => {
+  const formData = new FormData();
 
+  // Required
+  formData.append("status", data.status);
+  console.log("data remarks : ",data.remarks);
 
-  const response = await API.patch(
-    `/complaints/${complaintId}/status`,
-    { status },
+  // Optional fields
+  if (data.remarks) {
+    formData.append("remarks", data.remarks);
+  }
+
+  if (data.proof) {
+    formData.append("proof", data.proof); // file object
+  }
+
+  const response = await API.put(
+    `/volunteer/complaints/${complaintId}/status`,
+    formData,
     {
       headers: {
         Authorization: `Bearer ${token}`,
+
       },
     }
   );
+
   return response.data;
 };
 
