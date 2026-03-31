@@ -39,10 +39,10 @@ import {
 
 
   const currentVolunteer = JSON.parse(localStorage.getItem("user"));
-  const avatar = getInitials(currentVolunteer.name);
+  const name = currentVolunteer ? currentVolunteer.name : "Volunteer";
+  const avatar = getInitials(name);
   console.log("avatar:", avatar);
   
-  console.log("Current Volunteer name:", currentVolunteer.name);
   
   const mainNav = [
     { title: "Dashboard", url: "/volunteer", icon: LayoutDashboard },

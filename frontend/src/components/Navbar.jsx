@@ -6,6 +6,9 @@ function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  // ✅ Added user
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -17,7 +20,9 @@ function Navbar() {
       {/* Left: Logo */}
       <div
         className="navbar-left"
-        onClick={() => navigate("/dashboard")}
+        onClick={() =>
+          navigate(user?.role === "admin" ? "/admin/dashboard" : "/dashboard")
+        }
         style={{ cursor: "pointer" }}
       >
         <img src={logo} alt="CleanStreet Logo" className="logo-img" />
@@ -26,10 +31,23 @@ function Navbar() {
 
       {/* Center: Menu */}
       <div className="navbar-center">
-        <Link to="/dashboard">Dashboard</Link>
-        <Link to="/reportissue">Report Issue</Link>
-        <Link to="/complaints">View Complaints</Link>
-        <Link to="/profile">Profile</Link>
+
+        {/* 👤 USER */}
+        {user?.role === "user" && (
+          <>
+            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/reportissue">Report Issue</Link>
+          </>
+        )}
+
+        {/* 🛠️ ADMIN */}
+        {user?.role === "admin" && (
+          <>
+            <Link to="/admin/dashboard">Dashboard</Link>
+            <Link to="/admin/manage-complaints">Manage Complaints</Link>
+          </>
+        )}
+
       </div>
 
       {/* Right: Auth Section */}

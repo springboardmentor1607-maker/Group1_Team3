@@ -7,7 +7,7 @@ export const signup = async (req, res) => {
     try {
         console.log("SIGNUP API HIT");
         console.log("BODY:",req.body);
-        const { name, email, password, role, mobile } = req.body;
+        const { name, email, password, role, mobile, state } = req.body;
         const existingUser = await Users.findOne({ email });
 
         if (existingUser) {
@@ -18,6 +18,7 @@ export const signup = async (req, res) => {
             name,
             email,
             password,
+            state,
             role: role || "user",
             mobile: mobile || null
         })
