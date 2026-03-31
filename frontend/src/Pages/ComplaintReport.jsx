@@ -225,7 +225,7 @@ const handleDownloadPdf = () => {
       <main className="max-w-5xl mx-auto px-4 py-6">
         <Card>
           <CardContent className="pt-6">
-            <div className="bg-white text-black p-6 rounded-lg">
+            <div ref={reportRef} className="bg-white text-black p-6 rounded-lg">
 
               {/* Header */}
               <div className="text-center border-b pb-4 mb-6">
