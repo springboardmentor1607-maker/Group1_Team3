@@ -18,6 +18,7 @@ import VolunteerLayout from "./components/volunteer/VolunteerLayout";
 import DashboardOverview from "./Pages/volunteer/DashboardOverview";
 import MyComplaints from "./Pages/volunteer/MyComplaints";
 import ProfilePage from "./Pages/ProfilePage";
+import ComplaintReport from "./Pages/ComplaintReport";
 
 
 
@@ -27,7 +28,8 @@ function AppContent() {
     "/dashboard",
     "/admin-dashboard",
     "/manage-complaints",
-    "/volunteer"
+    "/volunteer",
+    "/admin/report",
   ];
 
   const hideNavbar = hideNavbarRoutes.some(route =>
@@ -71,7 +73,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-
+        <Route path="/admin/report" element = {<ComplaintReport/>}/>
         <Route path="/manage-complaints" element = {<ProtectedRoute><ManageComplaint/></ProtectedRoute>} />
 
         {/* ✅ NEW ROUTES ADDED BELOW */}

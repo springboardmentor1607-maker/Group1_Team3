@@ -118,7 +118,7 @@ export const updateComplaintStatus = async (req, res) => {
 
       // ✅ Save data
       complaint.resolvedRemarks = remarks;
-      complaint.resolvedProof = uploadResult.secure_url;
+      complaint.resolvedProofImages = uploadResult.secure_url;
       complaint.resolvedAt = new Date();
     }
 

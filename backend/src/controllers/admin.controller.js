@@ -65,3 +65,24 @@ export const assignComplaints = async (req,res)=>{
         return res.status(500).json({message : "Server Error"});
     }
 }
+
+
+export const getAllResolvedComplaints = async (req,res)=>{
+    try {
+    const { status } = req.query;
+
+    const filter = status ? { status } : {};
+
+    const complaints = await Complaint.find(filter)
+      .populate("user_id", "name email")          // ✅ FIXED
+      .populate("assigned_to", "name email mobile location") // ✅ FIXED
+      .sort({ updated_at: -1 });
+
+    res.status(200).json(complaints);
+  } catch (error) {
+    console.error("Error fetching complaints:", error);
+    res.status(500).json({
+      message: "Failed to fetch complaints",
+    });
+  }
+}
