@@ -58,8 +58,12 @@ function AdminLayout() {
           ))}
         </div>
 
-        <div style={{ marginBottom: "15px", cursor: "pointer" }} onClick={() => navigate("/admin/report")}>
-          📈 Reports
+        <div style={{ marginBottom: "15px", cursor: "pointer", padding: "10px",borderRadius:"8px"}} 
+        onClick={handleLogout}
+        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.15)"}
+        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+        >
+          🚪 Logout
         </div>
 
       </aside>
