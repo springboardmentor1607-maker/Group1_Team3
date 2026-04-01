@@ -58,21 +58,10 @@ function AdminLayout() {
           ))}
         </div>
 
-        {/* LOGOUT BUTTON */}
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: "10px",
-            border: "none",
-            borderRadius: "8px",
-            background: "#cc1111e6",
-            color: "white",
-            cursor: "pointer",
-            fontWeight: "500"
-          }}
-        >
-          🚪 Logout
-        </button>
+        <div style={{ marginBottom: "15px", cursor: "pointer" }} onClick={() => navigate("/admin/report")}>
+          📈 Reports
+        </div>
+
       </aside>
 
       {/* MAIN SECTION */}
