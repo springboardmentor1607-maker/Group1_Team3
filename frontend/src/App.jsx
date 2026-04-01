@@ -20,6 +20,7 @@ import MyComplaints from "./Pages/volunteer/MyComplaints";
 import ProfilePage from "./Pages/ProfilePage";
 import ComplaintReport from "./Pages/ComplaintReport";
 import AdminLayout from "./components/AdminLayout";
+import LandingPage from "./Pages/LandingPage";
 
 
 
@@ -32,7 +33,8 @@ function AppContent() {
     "/volunteer",
     "/admin/report",
     "/admin",
-    "/volunteer"
+    "/volunteer",
+    "/"
   ];
 
   const hideNavbar = hideNavbarRoutes.some(route =>
@@ -44,6 +46,7 @@ function AppContent() {
       {!hideNavbar && <Navbar />}
 
       <Routes>
+        <Route path="/" element={<LandingPage/>}/>
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
